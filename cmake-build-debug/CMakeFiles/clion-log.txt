@@ -1,6 +1,0 @@
-/mnt/nfs/homes/jgiron/.local/share/JetBrains/Toolbox/apps/CLion/ch-0/211.7628.27/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /mnt/nfs/homes/jgiron/Documents/ft_containers
--- Configuring done
-CMake Error: Cannot determine link language for target "ft_containers".
-CMake Error: CMake can not determine linker language for target: ft_containers
--- Generating done
-CMake Generate step failed.  Build files cannot be regenerated correctly.
