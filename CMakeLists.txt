@@ -8,4 +8,9 @@ include_directories(.)
 add_executable(ft_containers
         iterators_traits.hpp
         reverse_iterator.hpp
+        enable_if.hpp
+        is_integral.hpp
+        integral_constant.hpp
+        pair.hpp
+        Stack.hpp
         )
