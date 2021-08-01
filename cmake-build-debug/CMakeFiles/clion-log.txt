@@ -1,8 +1,0 @@
-/sgoinfre/goinfre/Perso/jgiron/apps/CLion/ch-0/211.6693.114/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /Users/jgiron/Documents/ft_containers
-CMake Error: Could not find CMAKE_ROOT !!!
-CMake has most likely not been installed correctly.
-Modules directory not found in
-/sgoinfre/goinfre/Perso/jgiron/apps/CLion/ch-0/211.6693.114/CLion.app/Contents/bin/cmake/mac/share/cmake-3.19
-CMake Error: Error executing cmake::LoadCache(). Aborting.
-
-Unable to determine product file path for target ft_containers. Running and debugging will be unavailable.
