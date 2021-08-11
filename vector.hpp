@@ -31,18 +31,17 @@ namespace ft {
 		typedef T value_type;
 		typedef Allocator allocator_type;
 		typedef size_t size_type;
-		typedef iterator_traits<iterator>::difference_type difference_type;
-		typedef allocator_type::reference &reference;
-		typedef allocator_type::const_reference const_reference;
-		typedef allocator_type::pointer pointer;
-		typedef allocator_type::const_pointer const_pointer;
+		typedef typename allocator_type::reference &reference;
+		typedef typename allocator_type::const_reference const_reference;
+		typedef typename allocator_type::pointer pointer;
+		typedef typename allocator_type::const_pointer const_pointer;
 	private:
 		template <typename>
 		struct get_pointer {};
 		template <>
-		struct get_pointer<value_type> {typedef pointer type;};
+		struct get_pointer<T> {typedef pointer type;};
 		template <>
-		struct get_pointer<const value_type> {typedef const_pointer type;};
+		struct get_pointer<const T> {typedef const_pointer type;};
 		template<typename U>
 		class t_iterator {
 		public:
@@ -123,6 +122,7 @@ namespace ft {
 		typedef t_iterator<const T> const_iterator;
 		typedef ft::reverse_iterator<iterator> reverse_iterator;
 		typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
+		typedef typename iterator_traits<iterator>::difference_type difference_type;
 	private:
 		allocator_type A;
 		pointer				data;
