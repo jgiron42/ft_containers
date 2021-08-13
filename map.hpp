@@ -4,13 +4,17 @@
 #include "iterator.hpp"
 #include "reverse_iterator.hpp"
 #include "enable_if.hpp"
-#include "is_class.hpp"
+//#include "is_class.hpp"
 #include <limits>
 #include <stdexcept>
 #define BLACK	1
 #define RED		0
 #define RIGHT	1
 #define LEFT	0
+#define RED_OUTPUT "\033[0;41m"
+#define BLACK_OUTPUT "\033[0;0m"
+#define BLUE_OUTPUT "\033[0;44m"
+#define DEFAULT_OUTPUT BLACK_OUTPUT
 
 namespace ft {
 	template < class Key,                                     // map::key_type
@@ -159,9 +163,14 @@ namespace ft {
 		allocator_type get_allocator() const {return (this->A);}
 
 		void print() {
+			char tmp[1000] = {};
 			if (this->tree)
-				print_node(this->tree, 0);
+				print_node(this->tree, 0, tmp);
 		}
+
+		void test_rotate_left (){
+			this->rotate_left(this->tree);
+		};
 
 	private:
 //		friend bool operator==(typename ft::enable_if<is_class<Key>::value, Key>::type &a, Key &b) {return (!comp(a, b) && !comp(b, a));}
@@ -179,80 +188,163 @@ namespace ft {
 				return(recursive_search(n->r, k));
 			return (n->value->second);
 		}
-		node *Rotate_left(node* P) {
-			if (!P || !P->l)
-				return (NULL);
+		void rotate_left(node*& P) {
 			node *tmp = P->l;
+			tmp->p = P->p;
 			P->l = tmp->r;
+			if (tmp->r)
+				tmp->r->p = P;
 			tmp->r = P;
+			P->p = tmp;
+			if (P == this->tree)
+				this->tree = tmp;
 			P = tmp;
-			return (P);
 		}
 
-		void print_node(node* n, int depth) {
+		void rotate_right(node*& P) {
+			node *tmp = P->r;
+			tmp->p = P->p;
+			P->r = tmp->l;
+			if (tmp->l)
+				tmp->l->p = P;
+			tmp->l = P;
+			P->p = tmp;
+			if (P == this->tree)
+				this->tree = tmp;
+			P = tmp;
+		}
+
+		void print_node(node* n, int depth, char *tmp)  {
 			if (n->l)
-				print_node(n->l, depth + 1);
+				print_node(n->l, depth + 1, tmp);
 			for  (int i = 0; i < depth; i++)
 			{
 				if (i + 1 == depth)
 				{
 					if (n->p->l == n)
-						std::cout << "   ╱";
+					{
+						std::cout << "   ╔";
+						tmp[i] = 1;
+					}
 					else
-						std::cout << "   ╲";
+					{
+						std::cout << "   ╚";
+						tmp[i]  = 0;
+					}
 				}
 				else
-					std::cout << "    ";
+				{
+					if (tmp[i])
+						std::cout << "   ║";
+					else
+						std::cout << "    ";
+				}
 			}
-			std::cout << n->value->first;
-//			if (n->r && n->l)
-//				std::cout << "⎨";
-//			if (n->l)
-//				std::cout << "";
-//			if (n->r)
-//				std::cout << "";
+			if (n->color == RED)
+				std::cout << RED_OUTPUT;
+			if (n->color == BLACK)
+				std::cout << BLACK_OUTPUT;
+			std::cout << n->value->first << DEFAULT_OUTPUT;
+			if (n->value->first < 10 && (n->l || n->r))
+				std::cout << "═";
+			if (n->value->first < 100 && (n->l || n->r))
+				std::cout << "═";
+			if (n->r && n->l)
+			{
+				std::cout << "╣";
+				tmp[depth] = 1;
+			}
+			if (n->l && !n->r)
+			{
+				std::cout << "╝";
+				tmp[depth] = 0;
+			}
+			if (n->r && !n->l)
+			{
+				tmp[depth] = 1;
+				std::cout << "╗";
+			}
 			std::cout  << std::endl;
 
 			if (n->r)
-				print_node(n->r, depth + 1);
+				print_node(n->r, depth + 1, tmp);
 		}
 //		ft::pair<iterator, bool>	recursive_insert(const value_type& value, node *n)
 		ft::pair<node *, bool>	recursive_insert(const value_type& value, node *n)
 		{
-//			node *tmp;
+			node *ret;
+			node *uncle;
 			if (value.first > n->value->first)						// greater
 			{
 				if (n->r)
-					return (recursive_insert(value, n->r));
+					return(recursive_insert(value, n->r));
 				else {
 					n->r = new node(value, RED, n, this->A, this->_size);
-					return (make_pair(n->r, true));
+					ret = n->r;
 				}
 			}
 			else if (value.first < n->value->first)				// smaller
 			{
 				if (n->l)
-					return (recursive_insert(value, n->l));
+					return(recursive_insert(value, n->l));
 				else {
 					n->l = new node(value, RED, n, this->A, this->_size);
-					return (make_pair(n->l, true));
+					ret = n->l;
 				}
 			}
 			else													// equal
 				return (make_pair(n, false));
-//			if (value->first < n->l->value->first)
-//				return(recursive_insert(n->l, n));
-//			if (value->first > n->r->value->first)
-//				return(recursive_insert(n->r, n));
-//			if (value->first < n->value->first)
-//			{
-//				tmp =  new node(value, RED, n, this->A, this->_size);
-//				tmp->l
-//
-//			}
-//			if (value->first > n->value->first)
-//				return(recursive_insert(n->r, n));
+			if (ret->p->color == BLACK)
+				return (make_pair(ret, true));
+			if (!ret->p->p)
+			{
+				ret->p->color = BLACK;
+				return (make_pair(ret, true));
+			}
+			uncle = get_uncle(ret);
+			node *tmp = ret;
+			if (uncle && uncle->color == RED) {
+				do {
+					uncle = get_uncle(tmp);
+					tmp->p->color = BLACK;
+					uncle->color = BLACK;
+					tmp->p->p->color = RED;
+					tmp = tmp->p->p;
+				} while (tmp && tmp->p);
+				return(make_pair(ret, true));
+			}
+			tmp = ret;
 
+			if (ret == ret->p->l) {
+				if (ret->p->p->r == ret->p) {
+					rotate_right(ret->p);
+					tmp = ret->p;
+				}
+				tmp->p->color = BLACK;
+				tmp->p->p->color = RED;
+				rotate_left(tmp->p->p);
+			}
+			else {
+				if (ret->p->p->l == ret->p) {
+					rotate_left(ret->p);
+					tmp = ret->p;
+				}
+				tmp->p->color = BLACK;
+				tmp->p->p->color = RED;
+				rotate_right(tmp->p->p);
+
+			}
+			return(make_pair(ret, true));
+		}
+		node *get_uncle(node *n){
+			if (!n->p)
+				return (NULL);
+			if (!n->p->p)
+				return (NULL);
+			if (n->p->p->l == n->p)
+				return n->p->p->r;
+			else
+				return n->p->p->l;
 		}
 	};
 }

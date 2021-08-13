@@ -1,10 +1,10 @@
-#include "vector.hpp"
 #include <iostream>
 #include "is_integral.hpp"
 #include "enable_if.hpp"
 #include "map.hpp"
 #include <cstdlib>
 #include <ctime>
+#include <cstdio>
 
 int main()
 {
@@ -31,12 +31,16 @@ int main()
 	ft::map<int, int> m;
 	int tmp;
 	std::srand(std::time(NULL));
-	for (int i = 0; i < 50; i++)
+	for (int i = 0; i < 10; i++)
 	{
 		tmp = std::rand() % 100;
+		m.print();
+std::cout << "%%%%%%%%%% " << tmp << std::endl;
 		m.insert(ft::make_pair<int, int>(tmp, tmp));
 	}
+	std::cout << DEFAULT_OUTPUT;
 
-
+	m.print();
+	m.test_rotate_left();
 	m.print();
 }
