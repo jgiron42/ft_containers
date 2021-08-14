@@ -1,6 +1,6 @@
 SRCS = 	 main.cpp 
 OBJS = ${SRCS:.cpp=.o}
-CFLAGS = -Wall -Wextra -Werror -std=c++98
+CFLAGS = -Wall -Wextra -Werror -std=c++98 -g
 .cpp.o:
 	clang++ $(CFLAGS) -c $< -o $(<:.cpp=.o)
 NAME =  ft_containers 
