@@ -93,10 +93,9 @@ namespace ft {
 		public:
 			iteratorT() : pos(NULL) {};
 			iteratorT(node *n) : pos(n){};
-			iteratorT(iteratorT<value_type> &src) : pos(src.operator->()){}
-			iteratorT(iteratorT<const value_type> &src) : pos(src.operator->()){}
+			iteratorT(const iteratorT<value_type> &src) : pos(src.operator->()){}
 			iteratorT &operator=(const iteratorT &src) { this->pos = src.operator->();}
-			node *operator->() {return (this->pos);}
+			node *operator->() const {return (this->pos);}
 			U &operator*() {return (this->pos->value);}
 			iteratorT &operator++() {return (increment(this->pos, NULL));}
 			iteratorT &operator--() {return (decrement(this->pos, NULL));}
@@ -150,7 +149,7 @@ namespace ft {
 //		map (InputIterator first, InputIterator last,
 //			 const key_compare& comp = key_compare(),
 //			 const allocator_type& alloc = allocator_type()) : A(alloc), comp(comp), tree(0), _begin(0, 0,0, this->A, this->_size), _end(0, 0,0, this->A, this->_size), _size(0);
-map (const map& x) : A(allocator_type()), comp(key_compare()), tree(x.tree), _begin(value_type(), 0,0, this->A, this->_size), _end(value_type(), 0,0, this->A, this->_size), _size(x._size) {};
+		map (const map& x) : A(allocator_type()), comp(key_compare()), tree(x.tree), _begin(value_type(), 0,0, this->A, this->_size), _end(value_type(), 0,0, this->A, this->_size), _size(x._size) {};
 		~map(){this->clear();}
 		map& operator= (const map& x) {
 			this->clear();
@@ -240,7 +239,6 @@ map (const map& x) : A(allocator_type()), comp(key_compare()), tree(x.tree), _be
 				*ref = tmp;
 			return (P);
 		}
-
 
 		ft::pair<iterator, bool>	recursive_insert(const value_type& value, node *n)
 		{
