@@ -1,7 +1,9 @@
 #include <iostream>
 #include "is_integral.hpp"
 #include "enable_if.hpp"
-#include "map.hpp"
+//#include "map.hpp"
+#include "vector.hpp"
+#include <vector>
 #include <cstdlib>
 #include <ctime>
 #include <cstdio>
@@ -29,37 +31,25 @@ int main()
 //	std::cout << std::endl;
 
 	// ================================= MAP =================================
-	ft::map<int, int> m;
-	int tmp;
+//	ft::map<int, int> m;
+//	int tmp;
+//
+//	struct timeval time;
+//	gettimeofday(&time, NULL);
+//	std::srand(time.tv_usec + (long int)1e6 * time.tv_sec);
+//	for (int i = 0; i < 500; i++)
+//	{
+//		tmp = std::rand() % 1000;
+////		m.print();
+//		m.insert(ft::make_pair<int, int>(tmp, tmp));
+//	}
+//	std::cout << DEFAULT_OUTPUT;
+//	m.print();
 
-	struct timeval time;
-	gettimeofday(&time, NULL);
-	std::srand(time.tv_usec + (long int)1e6 * time.tv_sec);
-	for (int i = 0; i < 500; i++)
-	{
-		tmp = std::rand() % 1000;
-//		m.print();
-		m.insert(ft::make_pair<int, int>(tmp, tmp));
-	}
-	std::cout << DEFAULT_OUTPUT;
-	m.print();
-//	std::cout << m.at(123) << std::endl;
-//	m.at(123) = 45;
-//	std::cout << m.at(123) << std::endl;
-//	m.insert(ft::make_pair<int, int>(17, 17));
-//	m.print();
-//	m.insert(ft::make_pair<int, int>(24, 24));
-//	m.print();
-//	m.insert(ft::make_pair<int, int>(14, 14));
-//	m.print();
-//	m.insert(ft::make_pair<int, int>(70, 70));
-//	m.print();
-//	m.insert(ft::make_pair<int, int>(27, 27));
-//	m.print();
-//	m.insert(ft::make_pair<int, int>(66, 66));
-//	m.print();
-//	m.insert(ft::make_pair<int, int>(72, 72));
-//	m.print();
-//	m.test_rotate_left();
-//	m.print();
+ft::vector<std::string> a;
+//std::vector<int> b;
+//
+//for (int i = 0; i < 4; i++)
+//	b.push_back(i);
+//a.insert(a.begin(), 2, "zbeub");
 }

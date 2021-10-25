@@ -13,4 +13,4 @@ add_executable(ft_containers
         integral_constant.hpp
         pair.hpp
         Stack.hpp
-        )
+        distance.hpp vector_iterator.hpp)

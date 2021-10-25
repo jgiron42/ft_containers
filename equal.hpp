@@ -14,7 +14,7 @@ namespace ft {
 				return false;
 			}
 		}
-		return true;
+		return (first1 == last1 && first2 == last2);
 	};
 
 //	template<class InputIt1, class InputIt2, class BinaryPredicate>
