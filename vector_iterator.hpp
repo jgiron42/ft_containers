@@ -4,12 +4,15 @@
 
 #ifndef FT_CONTAINERS_VECTOR_ITERATOR_HPP
 #define FT_CONTAINERS_VECTOR_ITERATOR_HPP
+
+#include <cstddef>
+
 namespace ft
 {
 	template<typename U>
 	class t_iterator {
 	public:
-		typedef ptrdiff_t					difference_type;
+		typedef std::ptrdiff_t					difference_type;
 		typedef U								value_type;
 		typedef	U*							pointer;
 		typedef	U &							reference;
