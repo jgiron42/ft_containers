@@ -52,7 +52,7 @@ namespace ft {
 			node(const value_type &value, bool color, node *parent, allocator_type &A, size_type &size, node_alloc &NA) :r(0), l(0), p(parent), _size(size), A(A),  color(color), value(A.allocate(1)), NA(NA) {
 				A.construct(this->value, value_type(value));
 			}
-			node(node &src) : r(src.r), l(src.l), p(src.p), _size(src._size), A(src.A), color(src.color), value(A.allocate(1)), NA(src.NA) {
+			node(const node &src) : r(src.r), l(src.l), p(src.p), _size(src._size), A(src.A), color(src.color), value(A.allocate(1)), NA(src.NA) {
 				A.construct(value, value_type(*src.value));
 				if (this->l)
 					this->l = new_node(*this->l);
