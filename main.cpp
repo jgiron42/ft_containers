@@ -1,7 +1,7 @@
 #include <iostream>
 #include "is_integral.hpp"
 #include "enable_if.hpp"
-//#include "map.hpp"
+#include "map.hpp"
 #include "vector.hpp"
 #include <vector>
 #include <cstdlib>
@@ -31,22 +31,22 @@ int main()
 //	std::cout << std::endl;
 
 	// ================================= MAP =================================
-//	ft::map<int, int> m;
-//	int tmp;
-//
-//	struct timeval time;
-//	gettimeofday(&time, NULL);
-//	std::srand(time.tv_usec + (long int)1e6 * time.tv_sec);
-//	for (int i = 0; i < 500; i++)
-//	{
-//		tmp = std::rand() % 1000;
-////		m.print();
-//		m.insert(ft::make_pair<int, int>(tmp, tmp));
-//	}
-//	std::cout << DEFAULT_OUTPUT;
-//	m.print();
+	ft::map<int, int> m;
+	int tmp;
 
-ft::vector<std::string> a;
+	struct timeval time;
+	gettimeofday(&time, NULL);
+	std::srand(time.tv_usec + (long int)1e6 * time.tv_sec);
+	for (int i = 0; i < 500; i++)
+	{
+		tmp = std::rand() % 1000;
+//		m.print();
+		m.insert(ft::make_pair<int, int>(tmp, tmp));
+	}
+	std::cout << DEFAULT_OUTPUT;
+	m.print();
+
+//ft::vector<std::string> a;
 //std::vector<int> b;
 //
 //for (int i = 0; i < 4; i++)

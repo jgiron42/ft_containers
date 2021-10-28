@@ -5,6 +5,7 @@
 #include "reverse_iterator.hpp"
 #include "enable_if.hpp"
 //#include "is_class.hpp"
+#include "distance.hpp"
 #include <limits>
 #include <stdexcept>
 #define BLACK	1
@@ -21,50 +22,59 @@
 #endif
 
 namespace ft {
+
+	template< class T > struct remove_const                { typedef T type; };
+	template< class T > struct remove_const<const T>       { typedef T type; };
+
 	template < class Key,                                     // map::key_type
 			class T,                                       // map::mapped_type
 			class Compare = std::less<Key>,                     // map::key_compare
 			class Alloc = std::allocator<pair<const Key,T> >    // map::allocator_type
 	> class map {
 	public:
-		typedef Key key_type;
-		typedef T mapped_type;
-		typedef pair<const key_type, mapped_type> value_type;
-		typedef Compare key_compare;
-//		typedef value_compare??????
-		typedef Alloc allocator_type;
-		typedef typename allocator_type::reference reference;
-		typedef typename allocator_type::const_reference const_reference;
-		typedef typename allocator_type::pointer pointer;
-		typedef typename allocator_type::const_pointer const_pointer;
-		typedef size_t size_type;
+		typedef Key													key_type;
+		typedef T													mapped_type;
+		typedef pair<const key_type, mapped_type>					value_type;
+		typedef Compare												key_compare;
+// value compare?
+		typedef Alloc									allocator_type;
+		typedef typename allocator_type::reference					reference;
+		typedef typename allocator_type::const_reference			const_reference;
+		typedef typename allocator_type::pointer					pointer;
+		typedef typename allocator_type::const_pointer				const_pointer;
+		typedef size_t												size_type;
 	private:
+		typedef typename remove_const<const allocator_type>::type						unconsted_alloc;
+		class node;
+		typedef typename Alloc::template rebind<node>::other node_alloc;
 		class node {
 		public:
-			node(const value_type &value, bool color, node *parent, allocator_type &A, size_type &size) :r(0), l(0), p(parent), _size(size), A(A),  color(color), value(A.allocate(1)) {
+			node(const value_type &value, bool color, node *parent, allocator_type &A, size_type &size, node_alloc &NA) :r(0), l(0), p(parent), _size(size), A(A),  color(color), value(A.allocate(1)), NA(NA) {
 				A.construct(this->value, value_type(value));
 			}
-			node(node &src) : r(src.r), l(src.l), p(src.p), _size(src._size), A(src.A), color(src.color), value(A.allocate(1)) {
-				A.construct(value, value_type(src.value));
+			node(node &src) : r(src.r), l(src.l), p(src.p), _size(src._size), A(src.A), color(src.color), value(A.allocate(1)), NA(src.NA) {
+				A.construct(value, value_type(*src.value));
 				if (this->l)
-					this->l = new node(this->l);
+					this->l = new_node(*this->l);
 				if (this->r)
-					this->r = new node(this->r);
-				(*this->_size)++;
+					this->r = new_node(*this->r);
+				this->_size++;
 			}
-			node &operator=(node &src) {
+			node &operator=(const 		node &src) {
 				this->p = src.p;
 				this->r = src.r;
 				this->l = src.l;
 				this->color = src.color;
-				this->value = src.value;
+				this->value = A.allocate(1);
+				A.construct(this->value, value_type(*src.value));
 				return (*this);
 			}
 			~node() {
 				if (this->r)
-					delete this->r;
+					delete_node(*this->r);
 				if (this->l)
-					delete this->l;
+					delete_node(*this->l);
+				A.destroy(this->value);
 				A.deallocate(this->value, 1);
 				_size--;
 				if (this->p && this->p->l == this)
@@ -72,11 +82,23 @@ namespace ft {
 				if (this->p && this->p->r == this)
 					this->p->r = NULL;
 			}
+			node *new_node(node &src)
+			{
+				node *ret = NA.allocate(1);
+				NA.construct(ret, src);
+				return(ret);
+			}
+			void delete_node(node &n)
+			{
+				NA.destroy(&n);
+				NA.deallocate(&n, 1);
+			}
 			node			*r;
 			node			*l;
 			node			*p;
 			size_type 		&_size;
 			allocator_type	&A;
+			node_alloc		&NA;
 			bool			color;
 			value_type		*value;
 		};
@@ -130,29 +152,43 @@ namespace ft {
 			}
 		};
 	public:
-		typedef iteratorT<value_type>			iterator;
-		typedef iteratorT<const value_type>		const_iterator;
-		typedef	ft::reverse_iterator<iterator>		reverse_iterator;
-		typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
+		typedef iteratorT<value_type>								iterator;
+		typedef iteratorT<const value_type>							const_iterator;
+		typedef	ft::reverse_iterator<iterator>						reverse_iterator;
+		typedef ft::reverse_iterator<const_iterator>				const_reverse_iterator;
 		typedef typename iterator_traits<iterator>::difference_type difference_type;
 	private:
-		allocator_type			A;
+		allocator_type 			A;
+		node_alloc 				NA;
 		node					*tree;
-		node					_begin;
-		node					_end;
-		key_compare				comp;
+		node					_past_the_end;
+		const key_compare				&comp;
 		size_type				_size;
 	public:
 		explicit map (const key_compare& comp = key_compare(),
-					  const allocator_type& alloc = allocator_type()) : A(alloc), tree(0), _begin(value_type(), 0,0, this->A, this->_size), _end(value_type(), 0,0, this->A, this->_size) , comp(comp), _size(0) {};
-//		template <class InputIterator>
-//		map (InputIterator first, InputIterator last,
-//			 const key_compare& comp = key_compare(),
-//			 const allocator_type& alloc = allocator_type()) : A(alloc), comp(comp), tree(0), _begin(0, 0,0, this->A, this->_size), _end(0, 0,0, this->A, this->_size), _size(0);
-		map (const map& x) : A(allocator_type()), comp(key_compare()), tree(x.tree), _begin(value_type(), 0,0, this->A, this->_size), _end(value_type(), 0,0, this->A, this->_size), _size(x._size) {};
+					  const allocator_type& alloc = allocator_type()) : A(allocator_type(alloc)), tree(0), _past_the_end(value_type(),0, 0, this->A, this->_size, NA) , comp(comp), _size(0) {};
+		template <class InputIterator>
+		map (InputIterator first, InputIterator last,
+			 const key_compare& comp = key_compare(),
+			 const allocator_type& alloc = allocator_type()) : A(allocator_type(alloc)), comp(comp), tree(0), _past_the_end(value_type(),0, 0, this->A, this->_size, NA), _size(0)
+		{
+			 for (; first != last; first++)
+				 this->insert(*first);
+		};
+		map (const map& x) : A(allocator_type(x.alloc)), comp(key_compare()), tree(x.tree), _past_the_end(value_type(),0, 0, this->A, this->_size, NA), _size(x._size) {
+			_past_the_end.l = this->tree;
+			_past_the_end.r = this->tree;
+			this->tree.p = _past_the_end;
+		};
 		~map(){this->clear();}
 		map& operator= (const map& x) {
 			this->clear();
+			this->comp = x.comp;
+			this->tree = x.tree;
+			this->size() = x._size;
+			_past_the_end.l = this->tree;
+			_past_the_end.r = this->tree;
+			this->tree.p = _past_the_end;
 			this->A = x.A;
 		}
 		iterator begin() {return (iterator(this->_begin.p));}
@@ -174,7 +210,10 @@ namespace ft {
 		ft::pair<iterator, bool>	insert( const value_type& value ) {
 			if (!this->tree)
 			{
-				this->tree = new node(value, RED, NULL, this->A, this->_size);
+				node n(value, RED, &this->_past_the_end, this->A, this->_size, NA);
+				this->tree = new_node(n);
+				this->_past_the_end.l = this->tree;
+				this->_past_the_end.r = this->tree;
 				return(make_pair(iterator(this->tree), true));
 			}
 			return (recursive_insert(value, this->tree));
@@ -188,23 +227,29 @@ namespace ft {
 //		size_type max_size() const {return(std::numeric_limits<difference_type>::max());}
 
 		void clear() {
-			delete tree;
+			delete_node(*tree);
 			tree = NULL;
 		};
 		allocator_type get_allocator() const {return (this->A);}
 	private:
-//		friend bool operator==(typename ft::enable_if<is_class<Key>::value, Key>::type &a, Key &b) {return (!comp(a, b) && !comp(b, a));}
-//		friend bool operator<(typename ft::enable_if<is_class<Key>::value, Key>::type &a, Key &b) {return (comp(a, b));}
-//		friend bool operator>(typename ft::enable_if<is_class<Key>::value, Key>::type &a, Key &b) {return (comp(b, a));}
-//		friend bool operator<=(typename ft::enable_if<is_class<Key>::value, Key>::type &a, Key &b) {return (!comp(b, a));}
-//		friend bool operator>=(typename ft::enable_if<is_class<Key>::value, Key>::type &a, Key &b) {return (!comp(a, b));}
+		node *new_node(node &n)
+		{
+			node *ret = NA.allocate(1);
+			NA.construct(ret, n);
+			return(ret);
+		}
+		void delete_node(node &n)
+		{
+			NA.destroy(&n);
+			NA.deallocate(&n, 1);
+		}
 	 	T &recursive_search(node *n, const Key &k)
 		{
 			if (!n)
 				throw std::out_of_range("node doesn't exist");
-	 		if (k < n->value->first)
+	 		if (comp(k, n->value->first))
 	 			return(recursive_search(n->l, k));
-			if (k > n->value->first)
+			if (comp(n->value->first, k))
 				return(recursive_search(n->r, k));
 			return (n->value->second);
 		}
@@ -225,54 +270,66 @@ namespace ft {
 		}
 
 		node *rotate_right(node* P) {
-			node **ref = P->p && P->p->l == P ? &P->p->l : (P->p ? &P->p->r : NULL);
+			node **ref = exist(P->p) && P->p->l == P ? &P->p->l : (exist(P->p) ? &P->p->r : NULL);
 			node *tmp = P->r;
 			tmp->p = P->p;
 			P->r = tmp->l;
-			if (tmp->l)
+			if (exist(tmp->l))
 				tmp->l->p = P;
 			tmp->l = P;
 			P->p = tmp;
 			if (!ref)
+			{
 				this->tree = tmp;
+				this->tree->p = &this->_past_the_end;
+				this->_past_the_end.l = this->tree;
+				this->_past_the_end.r = this->tree;
+			}
 			else
 				*ref = tmp;
 			return (P);
+		}
+		bool exist (node *n)
+		{
+			return (n && n != this->tree);
 		}
 
 		ft::pair<iterator, bool>	recursive_insert(const value_type& value, node *n)
 		{
 			node *ret;
 			node *uncle;
-			if (value.first > n->value->first)						// greater
+			node tmpnode(value_type(),0,0,this->A, this->_size, this->NA);
+			if (comp(n->value->first, value.first))						// greater
 			{
-				if (n->r && n->r != &this->_end)
+				if (n->r)
 					return(recursive_insert(value, n->r));
 				else {
-					if (n->r != &this->_end)
-						n->r = new node(value, RED, n, this->A, this->_size);
-					else
-					{
-						n->r = new node(value, RED, n, this->A, this->_size);
-						n->r->r = &this->_end;
-						this->_end.p = n->r;
-					}
+//					if (n->r != &this->_end)
+					tmpnode = node(value, RED, n, this->A, this->_size, NA);
+						n->r = new_node(tmpnode);
+//					else
+//					{
+//						n->r = new_node( node(value, RED, n, this->A, this->_size));
+//						n->r->r = &this->_end;
+//						this->_end.p = n->r;
+//					}
 					ret = n->r;
 				}
 			}
-			else if (value.first < n->value->first)					// smaller
+			else if (comp(value.first, n->value->first))					// smaller
 			{
-				if (n->l && n->l != &this->_begin)
+				if (n->l)
 					return(recursive_insert(value, n->l));
 				else {
-					if (n->l != &this->_begin)
-						n->l = new node(value, RED, n, this->A, this->_size);
-					else
-					{
-						n->l = new node(value, RED, n, this->A, this->_size);
-						n->l->l = &this->_begin;
-						this->_begin.p = n->l;
-					}
+//					if (n->l != &this->_begin)
+					tmpnode = node(value, RED, n, this->A, this->_size, NA);
+						n->l = new_node(tmpnode);
+//					else
+//					{
+//						n->l = new_node(node(value, RED, n, this->A, this->_size));
+//						n->l->l = &this->_begin;
+//						this->_begin.p = n->l;
+//					}
 					ret = n->l;
 				}
 			}
@@ -282,19 +339,19 @@ namespace ft {
 			start_of_balancing:
 			if (tmp->p->color == BLACK)
 				return (make_pair(iterator(ret), true));
-			if (!tmp->p->p)
+			if (!exist(tmp->p->p)) // parent is root
 			{
 				tmp->p->color = BLACK;
 				return (make_pair(iterator(ret), true));
 			}
 			uncle = get_uncle(tmp);
-			if (uncle && uncle->color == RED) {
+			if (exist(uncle) && uncle->color == RED) {
 				uncle = get_uncle(tmp);
 				tmp->p->color = BLACK;
 				uncle->color = BLACK;
 				tmp->p->p->color = RED;
 				tmp = tmp->p->p;
-				if (tmp && tmp->p)
+				if (exist(tmp) && exist(tmp->p))
 					goto start_of_balancing;
 				return(make_pair(iterator(ret), true));
 			}
@@ -331,9 +388,9 @@ namespace ft {
 		}
 		node *get_uncle(node *n){
 
-			if (!n->p)
+			if (!exist(n->p))
 				return (NULL);
-			if (!n->p->p)
+			if (!exist(n->p->p))
 				return (NULL);
 			if (n->p->p->l == n->p)
 				return n->p->p->r;

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
-project(ft_containers)
+project(ft_containers CXX)
 
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 98)
 
 include_directories(.)
 
@@ -13,4 +13,6 @@ add_executable(ft_containers
         integral_constant.hpp
         pair.hpp
         Stack.hpp
-        distance.hpp vector_iterator.hpp)
+        map.hpp
+        distance.hpp vector_iterator.hpp
+        main.cpp)
