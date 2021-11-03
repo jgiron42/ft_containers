@@ -2,3 +2,5 @@ cmake-build-debug
 .idea
 42_Containator
 containers_test
+a.out
+.gitignore

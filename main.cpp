@@ -1,4 +1,5 @@
 #include <iostream>
+#include "timer.hpp"
 #include "is_integral.hpp"
 #include "enable_if.hpp"
 #include "map.hpp"
@@ -33,18 +34,23 @@ int main()
 	// ================================= MAP =================================
 	ft::map<int, int> m;
 	int tmp;
+	timer<false> t;
 
 	struct timeval time;
 	gettimeofday(&time, NULL);
 	std::srand(time.tv_usec + (long int)1e6 * time.tv_sec);
-	for (int i = 0; i < 500; i++)
+	t.start();
+	for (int i = 0; i < 100; i++)
 	{
 		tmp = std::rand() % 1000;
 //		m.print();
-		m.insert(ft::make_pair<int, int>(tmp, tmp));
+		m.insert(ft::make_pair<int, int>(i, i));
+//		std::cout << "m.insert(ft::make_pair<int, int>(" << tmp << ", " << tmp << ")); " << std::endl;
 	}
-	std::cout << DEFAULT_OUTPUT;
-	m.print();
+	std::cout << t << std::endl;
+	t.stop();
+	std::cout << t << std::endl;
+//	m.print();
 
 //ft::vector<std::string> a;
 //std::vector<int> b;
