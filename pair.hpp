@@ -5,10 +5,12 @@
 #ifndef FT_CONTAINERS_PAIR_HPP
 #define FT_CONTAINERS_PAIR_HPP
 
+#include "type_traits.hpp"
+
 namespace ft {
 	template <class T1, class T2> struct pair{
-		typedef T1	first_type;
-		typedef T2	second_type;
+		typedef typename remove_const<T1>::type	first_type;
+		typedef typename remove_const<T2>::type	second_type;
 		first_type	first;
 		second_type	second;
 		pair() : first(), second(){};
