@@ -224,12 +224,12 @@ namespace ft {
 		map& operator= (const map& x) {
 			this->clear();
 //			this->_comp = x._comp;
-			this->tree = x.tree;
+//			this->A = x.A;
+			this->tree = new_node(*x.tree);
 			this->_size = x._size;
 			_past_the_end.l = this->tree;
 			_past_the_end.r = this->tree;
 			this->tree->p = &_past_the_end;
-			this->A = x.A;
 			return (*this);
 		}
 		allocator_type get_allocator() const {return(this->A);};
@@ -244,12 +244,12 @@ namespace ft {
 			return (insert(ft::make_pair(key, T())).first->second);
 		}
 
-		iterator begin() {return (iterator(this->first));}
-		const_iterator begin() const {return (const_iterator(this->first));}
+		iterator begin() {return (iterator(this->first ? this->first : &_past_the_end));}
+		const_iterator begin() const {return (const_iterator(this->first ? this->first : &_past_the_end));}
 		iterator end() {return (iterator(&this->_past_the_end));}
 		const_iterator end() const{return (const_iterator(&this->_past_the_end));}
-		reverse_iterator rbegin() {return (reverse_iterator(this->last));}
-		const_reverse_iterator rbegin() const {return (const_reverse_iterator(this->last));}
+		reverse_iterator rbegin() {return (reverse_iterator(this->last ? this->last : &_past_the_end));}
+		const_reverse_iterator rbegin() const {return (const_reverse_iterator(this->last ? this->last : &_past_the_end));}
 		reverse_iterator rend() {return (reverse_iterator(&this->_past_the_end));}
 		const_reverse_iterator rend() const{return (const_reverse_iterator(&this->_past_the_end));}
 
@@ -258,7 +258,8 @@ namespace ft {
 		size_type max_size() const {return(std::numeric_limits<difference_type>::max());}
 
 		void clear() {
-			delete_node(*tree);
+			if (tree)
+				delete_node(*tree);
 			tree = NULL;
 			first = NULL;
 			last = NULL;
