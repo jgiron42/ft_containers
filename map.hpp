@@ -5,6 +5,7 @@
 #include "reverse_iterator.hpp"
 #include "enable_if.hpp"
 #include "type_traits"
+#include <cstddef>
 #include "lexicographical_compare.hpp"
 #include "equal.hpp"
 //#include "is_class.hpp"
