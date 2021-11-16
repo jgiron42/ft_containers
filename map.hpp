@@ -115,7 +115,7 @@ namespace ft {
 			typedef U								value_type;
 			typedef U&								reference;
 			typedef U*								pointer;
-			typedef ptrdiff_t 						difference_type;
+			typedef std::ptrdiff_t 						difference_type;
 			typedef std::bidirectional_iterator_tag iterator_category;
 		protected:
 //			typename remove_const<const node*>::type pos;
