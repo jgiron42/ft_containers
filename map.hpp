@@ -5,11 +5,14 @@
 #include "reverse_iterator.hpp"
 #include "enable_if.hpp"
 #include "type_traits"
+#include "lexicographical_compare.hpp"
+#include "equal.hpp"
 //#include "is_class.hpp"
 #include "distance.hpp"
 #include <limits>
 #include <stdexcept>
 #include <iostream>
+#include <utility>
 #define BLACK	1
 #define RED		0
 
@@ -52,12 +55,13 @@ namespace ft {
 		typedef typename allocator_type::const_pointer				const_pointer;
 		typedef size_t												size_type;
 	private:
-		typedef typename remove_const<const allocator_type>::type						unconsted_alloc;
+//		typedef typename remove_const<const allocator_type>::type	unconsted_alloc;
 		class node;
 		typedef typename Alloc::template rebind<node>::other node_alloc;
 		class node {
 		public:
-			node(const value_type &value, bool color, node *parent, size_type &size, node_alloc &NA) :r(0), l(0), p(parent), _size(size), color(color), value(value), NA(NA) {
+			node(const value_type &value, bool color, node *parent, size_type &size, typename remove_const<const node_alloc>::type  &NA) :r(0), l(0), p(parent), _size(size), color(color), value(value), NA(NA) {
+				this->_size++;
 			}
 			node(const node &src) : r(src.r), l(src.l), p(src.p), _size(src._size), color(src.color), value(src.value), NA(src.NA) {
 				if (this->l)
@@ -102,7 +106,7 @@ namespace ft {
 			size_type 		&_size;
 			bool			color;
 			value_type		value;
-			node_alloc		&NA;
+			typename remove_const<const node_alloc>::type		&NA;
 		};
 		template <typename U>
 		class iteratorT {
@@ -112,21 +116,24 @@ namespace ft {
 			typedef U*								pointer;
 			typedef ptrdiff_t 						difference_type;
 			typedef std::bidirectional_iterator_tag iterator_category;
-		private:
-			typename remove_const<const node*>::type pos;
+		protected:
+//			typename remove_const<const node*>::type pos;
+			node *pos;
 		public:
 			iteratorT() : pos(NULL) {};
-			iteratorT(typename remove_const<const node*>::type n) : pos(n){};
+			iteratorT(node* n) : pos(n){};
+			iteratorT(const node* n) : pos((node *)n){};
+//			iteratorT(typename remove_const<const node*>::type n) : pos(n){};
 			iteratorT(const iteratorT<value_type> &src) : pos(src.pos){}
 			iteratorT &operator=(const iteratorT &src) {
-				this->pos = src.pos;
+				this->pos = (node *)src.pos;
 				return(*this);
 			}
 			operator iteratorT<const U>()
 			{
 				return(iteratorT<const U>(this->pos));
 			}
-			pointer operator->() const {return (&(this->operator*()));}
+			pointer operator->() const {return (&(this->pos->value));}
 			reference operator*() const {return (this->pos->value);}
 			iteratorT &operator++() {return (increment(this->pos, NULL));}
 			iteratorT &operator--() {return (decrement(this->pos, NULL));}
@@ -140,37 +147,44 @@ namespace ft {
 				decrement(this->pos, NULL);
 				return (tmp);
 			}
-			bool operator==(iteratorT l){return (l.pos == this->pos);}
-			bool operator!=(iteratorT l){return (l.pos == this->pos);}
+			friend class ft::map<Key, T, Compare, Alloc>;
 		private:
 			iteratorT &increment(typename remove_const<const node*>::type n, typename remove_const<const node*>::type old) {
+				if (n->l && old == n->p)
+					return (increment(n->l, n));
+				if (old == n->p)
+				{
+					this->pos = (node *)n;
+					return (*this);
+				}
 				if (n->l && n->l == old)
 				{
-					this->pos = n;
+					this->pos = (node *)n;
 					return (*this);
 				}
 				if (n->r && n->r != old)
-				{
-					this->pos = n->r;
-					return (*this);
-				}
+					return (increment(n->r, n));
 				if (n->p)
 					return (increment(n->p, n));
 				return (*this);
 			}
 			iteratorT &decrement(typename remove_const<const node*>::type n, typename remove_const<const node*>::type old) {
+				if (n->r && old == n->p)
+					return (decrement(n->r, n));
+				if (old == n->p)
+				{
+					this->pos = (node *)n;
+					return (*this);
+				}
 				if (n->r && n->r == old)
 				{
-					this->pos = n;
+					this->pos = (node *)n;
 					return (*this);
 				}
 				if (n->l && n->l != old)
-				{
-					this->pos = n->l;
-					return (*this);
-				}
+					return (decrement(n->l, n));
 				if (n->p)
-					return (increment(n->p, n));
+					return (decrement(n->p, n));
 				return (*this);
 			}
 		};
@@ -184,7 +198,7 @@ namespace ft {
 		allocator_type 			A;
 		node					*tree;
 		node					_past_the_end;
-		const key_compare		_comp;
+		const key_compare		&_comp;
 		size_type				_size;
 		node_alloc 				NA;
 		node					*first;
@@ -195,26 +209,27 @@ namespace ft {
 		template <class InputIterator>
 		map (InputIterator first, InputIterator last,
 			 const key_compare& comp = key_compare(),
-			 const allocator_type& alloc = allocator_type()) : A(allocator_type(alloc)), tree(0), _past_the_end(value_type(),0, 0, this->_size, NA), _comp(key_compare(comp)), _size(0)
+			 const allocator_type& alloc = allocator_type()) : A(allocator_type(alloc)), tree(0), _past_the_end(value_type(),0, 0, this->_size, NA), _comp(comp), _size(0)
 		{
 			 for (; first != last; first++)
 				 this->insert(*first);
 		};
-		map (const map& x) : A(allocator_type(x.alloc)), tree(x.tree), _past_the_end(value_type(), 0, 0, _comp(key_compare()), this->_size, NA), _size(x._size) {
+		map (const map& x) : A(allocator_type(x.A)), tree(x.tree), _past_the_end(value_type(), 0, 0, this->_size, x.NA), _size(x._size), NA(x.NA) {
 			_past_the_end.l = this->tree;
 			_past_the_end.r = this->tree;
-			this->tree.p = _past_the_end;
+			this->tree->p = &_past_the_end;
 		};
 		~map(){this->clear();}
 		map& operator= (const map& x) {
 			this->clear();
-			this->_comp = x._comp;
+//			this->_comp = x._comp;
 			this->tree = x.tree;
-			this->size() = x._size;
+			this->_size = x._size;
 			_past_the_end.l = this->tree;
 			_past_the_end.r = this->tree;
-			this->tree.p = _past_the_end;
+			this->tree->p = &_past_the_end;
 			this->A = x.A;
+			return (*this);
 		}
 		allocator_type get_allocator() const {return(this->A);};
 
@@ -232,10 +247,10 @@ namespace ft {
 		const_iterator begin() const {return (const_iterator(this->first));}
 		iterator end() {return (iterator(&this->_past_the_end));}
 		const_iterator end() const{return (const_iterator(&this->_past_the_end));}
-		reverse_iterator rbegin() {return (iterator(this->last));}
-		const_reverse_iterator rbegin() const {return (const_iterator(this->last));}
-		reverse_iterator rend() {return (iterator(&this->_past_the_end));}
-		const_reverse_iterator rend() const{return (const_iterator(&this->_past_the_end));}
+		reverse_iterator rbegin() {return (reverse_iterator(this->last));}
+		const_reverse_iterator rbegin() const {return (const_reverse_iterator(this->last));}
+		reverse_iterator rend() {return (reverse_iterator(&this->_past_the_end));}
+		const_reverse_iterator rend() const{return (const_reverse_iterator(&this->_past_the_end));}
 
 		bool empty() const {return (!this->_size);}
 		size_type size() const {return (this->_size);}
@@ -260,19 +275,76 @@ namespace ft {
 				this->tree->p = &this->_past_the_end;
 				this->first = this->tree;
 				this->last = this->tree;
-				return(make_pair(iterator(this->tree), true));
+
+				return(ft::make_pair<iterator, bool>(iterator(this->tree), true));
 			}
 			return (recursive_insert(value, this->tree));
 		}
-//		iteratorT					insert( iteratorT hint, const value_type& value );
-//		template< class InputIt >
-//		void						insert( InputIt first, InputIt last );
+		iterator					insert( iterator hint, const value_type& value )
+		{
+			if (!this->tree)
+			{
+				node n(value, RED, &this->_past_the_end, this->_size, NA);
+				this->tree = new_node(n);
+				this->_past_the_end.l = this->tree;
+				this->_past_the_end.r = this->tree;
+				this->tree->p = &this->_past_the_end;
+				this->first = this->tree;
+				this->last = this->tree;
+				return(iterator(this->tree));
+			}
+			iterator next = hint;
+			++next;
+			if (next != this->end() && _comp(hint->first, value.first) && _comp(value.first, next->first))
+				return (recursive_insert(value, next.pos).first);
+			return (recursive_insert(value, this->tree).first);
+		}
+
+		template< class InputIt >
+		void						insert( InputIt first, InputIt last )
+		{
+			iterator tmp = this->begin();
+
+			while (first != last)
+			{
+				tmp = this->insert(tmp, *first);
+				++first;
+			}
+		}
 
 //		void erase( iterator pos );
 //		void erase( iterator first, iterator last );
 //		size_type erase( const key_type& key );
 
-//		void swap( map& other );
+		void swap( map& other ) {
+			node_alloc	swap_alloc = this->NA;
+			this->NA = other.NA;
+			other.NA = swap_alloc;
+
+			size_type	swap_size = this->_size;
+			this->_size = other._size;
+			other._size = swap_size;
+
+			node		*tree_swap = this->tree;
+			this->tree = other.tree;
+			other.tree = tree_swap;
+
+			other._past_the_end.l = other.tree;
+			other._past_the_end.r = other.tree;
+			other.tree->p = &other._past_the_end;
+
+			this->_past_the_end.l = other.tree;
+			this->_past_the_end.r = other.tree;
+			this->tree->p = &this->_past_the_end;
+
+			node		*first_swap = this->first;
+			this->first = other.first;
+			other.first = first_swap;
+
+			node		*last_swap = this->last;
+			this->last = other.last;
+			other.last = last_swap;
+		};
 
 		size_type count( const Key& key ) const {
 			return (recursive_search(this->tree, key) != this->end());
@@ -280,56 +352,34 @@ namespace ft {
 
 		iterator find( const Key& key ) {
 			return (recursive_search(this->tree, key));
-		};
+		}
+
 		const_iterator find( const Key& key ) const {
 			return (recursive_search(this->tree, key));
-		};
+		}
 
 		ft::pair<iterator,iterator> equal_range( const Key& key ) {
-			return (make_pair(this->lower_bound(key), this->upper_bound(key)));
+			return (ft::make_pair(this->lower_bound(key), this->upper_bound(key)));
 		}
+
 		ft::pair<const_iterator,const_iterator> equal_range( const Key& key ) const {
-			return (make_pair(const_iterator(this->lower_bound(key)), const_iterator(this->upper_bound(key))));
+			return (ft::make_pair(const_iterator(this->lower_bound(key)), const_iterator(this->upper_bound(key))));
 		}
 
 		iterator lower_bound( const Key& key ) {
-			node *tmp = this->tree;
-
-			while(tmp && !_comp(tmp->value.first, key))
-				tmp = tmp->l;
-			if (!tmp)
-				return(this->end());
-			return (iterator(tmp));
+			return (recursive_lower_bound(this->tree, key, (node *)&this->_past_the_end));
 		}
 
 		const_iterator lower_bound( const Key& key ) const {
-			node *tmp = this->tree;
-
-			while(tmp && !_comp(tmp->value.first, key))
-				tmp = tmp->l;
-			if (!tmp)
-				return(this->end());
-			return (const_iterator(tmp));
+			return (recursive_lower_bound(this->tree, key, (node *)&this->_past_the_end));
 		}
 
 		iterator upper_bound( const Key& key ) {
-			node *tmp = this->tree;
-
-			while(tmp && _comp(key, tmp->value.first))
-				tmp = tmp->r;
-			if (!tmp)
-				return(this->end());
-			return (iterator(tmp));
+			return (recursive_upper_bound(this->tree, key, (node *)&this->_past_the_end));
 		}
 
 		const_iterator upper_bound( const Key& key ) const {
-			node *tmp = this->tree;
-
-			while(tmp && _comp(key, tmp->value.first))
-				tmp = tmp->r;
-			if (!tmp)
-				return(this->end());
-			return (const_iterator(tmp));
+			return (recursive_upper_bound(this->tree, key, (node *)&this->_past_the_end));
 		}
 		key_compare key_comp() const {
 			return(this->_comp);
@@ -351,13 +401,40 @@ namespace ft {
 			NA.destroy(&n);
 			NA.deallocate(&n, 1);
 		}
-	 	iterator recursive_search(node *n, const Key &k)
+
+	 	iterator recursive_lower_bound(node *n, const Key &k, node *current) const
 		{
 			if (!n)
-				return(iterator(this->_past_the_end));
-	 		if (_comp(k, n->value->first))
+				return(iterator(current));
+			if ((current == &_past_the_end || _comp(n->value.first, current->value.first)) && !_comp(n->value.first, k))
+				current = n;
+			if (_comp(k, n->value.first))
+				return(recursive_lower_bound(n->l, k, current));
+			if (_comp(n->value.first, k))
+				return(recursive_lower_bound(n->r, k, current));
+			return (iterator(n));
+		}
+
+		iterator recursive_upper_bound(node *n, const Key &k, node *current) const
+		{
+			if (!n)
+				return(iterator(current));
+			if ((current == &_past_the_end || _comp(n->value.first, current->value.first)) && _comp(k, n->value.first))
+				current = n;
+			if (_comp(k, n->value.first))
+				return(recursive_upper_bound(n->l, k, current));
+			if (_comp(n->value.first, k))
+				return(recursive_upper_bound(n->r, k, current));
+			return (iterator(current));
+		}
+
+	 	iterator recursive_search(node *n, const Key &k) const
+		{
+			if (!n)
+				return(iterator(&this->_past_the_end));
+	 		if (_comp(k, n->value.first))
 	 			return(recursive_search(n->l, k));
-			if (_comp(n->value->first, k))
+			if (_comp(n->value.first, k))
 				return(recursive_search(n->r, k));
 			return (iterator(n));
 		}
@@ -437,15 +514,15 @@ namespace ft {
 				}
 			}
 			else													// equal
-				return (make_pair(iterator(n), false));
+				return (ft::make_pair<iterator, bool>(iterator(n), false));
 			node *tmp = ret;
 			start_of_balancing:
 			if (tmp->p->color == BLACK)
-				return (make_pair(iterator(ret), true));
+				return (ft::make_pair<iterator, bool>(iterator(ret), true));
 			if (!exist(tmp->p->p)) // parent is root
 			{
 				tmp->p->color = BLACK;
-				return (make_pair(iterator(ret), true));
+				return (ft::make_pair<iterator, bool>(iterator(ret), true));
 			}
 			uncle = get_uncle(tmp);
 			if (exist(uncle) && uncle->color == RED) {
@@ -456,7 +533,7 @@ namespace ft {
 				tmp = tmp->p->p;
 				if (exist(tmp) && exist(tmp->p))
 					goto start_of_balancing;
-				return(make_pair(iterator(ret), true));
+				return(ft::make_pair<iterator, bool>(iterator(ret), true));
 			}
 
 			if (tmp == tmp->p->l) {
@@ -487,7 +564,7 @@ namespace ft {
 					rotate_right(tmp->p->p);
 				}
 			}
-			return(make_pair(iterator(ret), true));
+			return(ft::make_pair<iterator, bool>(iterator(ret), true));
 		}
 		node *get_uncle(node *n){
 
@@ -499,6 +576,24 @@ namespace ft {
 				return n->p->p->r;
 			else
 				return n->p->p->l;
+		}
+		friend bool operator==(const map &lhs, const map &rhs) {
+			return (ft::equal<const_iterator, const_iterator>(lhs.begin(), lhs.end(), rhs.begin(),	rhs.end()));
+		}
+		friend bool operator!=(const map &lhs, const map &rhs) {
+			return (!(lhs == rhs));
+		}
+		friend bool operator<(const map &lhs, const map &rhs) {
+			return (ft::lexicographical_compare<const_iterator, const_iterator>(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
+		}
+		friend bool operator<=(const map &lhs, const map &rhs) {
+			return (!(rhs < lhs));
+		}
+		friend bool operator>(const map &lhs, const map &rhs) {
+			return (rhs < lhs);
+		}
+		friend bool operator>=(const map &lhs, const map &rhs) {
+			return (!(lhs < rhs));
 		}
 
 #ifdef DEBUG
@@ -571,6 +666,19 @@ namespace ft {
 		}
 #endif
 	};
+	template <typename i1, typename i2>
+	bool operator==(i1 l, i2 r){return (&*l == &*r );}
+	template <typename i1, typename i2>
+	bool operator!=(i1 l, i2 r){return !(&*l == &*r );}
+
+}
+
+
+namespace std {
+	template<class Key, class T, class Compare, class Alloc>
+	void swap(ft::map<Key, T, Compare, Alloc> &lhs, ft::map<Key, T, Compare, Alloc> &rhs) {
+		lhs.swap(rhs);
+	}
 }
 
 #endif
