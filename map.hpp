@@ -214,8 +214,13 @@ namespace ft {
 			 for (; first != last; first++)
 				 this->insert(*first);
 		};
-		map (const map& x) : A(allocator_type(x.A)), _past_the_end(value_type(), 0, 0, this->_size, NA), _comp(x._comp), _size(0), NA(x.NA), first(NULL), last(NULL) {
+		map (const map& x) : A(allocator_type(x.A)), _past_the_end(value_type(), 0, 0, this->_size, NA), _comp(x._comp), _size(0), NA(x.NA), first(NULL), last(NULL)
+		{
 			this->tree = new_node(*x.tree);
+			for (node * i = this->tree; i; i = i->l)
+				this->first = i;
+			for (node * i = this->tree; i; i = i->r)
+				this->last = i;
 			_past_the_end.NA = this->NA;
 			_past_the_end.l = this->tree;
 			_past_the_end.r = this->tree;
@@ -227,6 +232,10 @@ namespace ft {
 //			this->_comp = x._comp;
 //			this->A = x.A;
 			this->tree = new_node(*x.tree);
+			for (node * i = this->tree; i; i = i->l)
+				this->first = i;
+			for (node * i = this->tree; i; i = i->r)
+				this->last = i;
 			this->_size = x._size;
 			_past_the_end.l = this->tree;
 			_past_the_end.r = this->tree;
