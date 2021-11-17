@@ -12,7 +12,7 @@ add_executable(ft_containers
         is_integral.hpp
         integral_constant.hpp
         pair.hpp
-        Stack.hpp
+        stack.hpp
         map.hpp
         distance.hpp vector_iterator.hpp
         main.cpp)
