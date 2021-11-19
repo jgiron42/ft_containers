@@ -29,13 +29,13 @@ namespace ft {
 //		reverse_iterator& operator=( const reverse_iterator<U>& other ) {return(this->current = other.base());}
 		iterator_type base() const{return (this->current);}
 		reference operator*() const {
-			return (*Iter(this->current));
+			return (*--Iter(this->current));
 		}
 		pointer operator->() const {
-			return (&(*Iter(this->current)));
+			return (&(*--Iter(this->current)));
 		}
 		reference operator[]( difference_type n ) const {
-			return (base()[-n]);
+			return (base()[-n - 1]);
 		}
 		reverse_iterator& operator++() {
 			--current;

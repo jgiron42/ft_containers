@@ -60,15 +60,30 @@ namespace ft {
 		typedef typename Alloc::template rebind<node>::other node_alloc;
 		class node {
 		public:
-			node(const value_type &value, bool color, node *parent, size_type &size, typename remove_const<const node_alloc>::type  &NA) :r(0), l(0), p(parent), _size(size), color(color), value(value), NA(NA) {
-				this->_size++;
+			node(const value_type &value, bool color, node *parent, size_type &size, typename remove_const<const node_alloc>::type  &NA) :r(0), l(0), p(parent), _size(&size), color(color), value(value), NA(&NA) {
+				(*this->_size)++;
 			}
 			node(const node &src) : r(src.r), l(src.l), p(src.p), _size(src._size), color(src.color), value(src.value), NA(src.NA) {
 				if (this->l)
-					this->l = new_node(*this->l);
+				{
+					// delire sous ritaline
+					node tmp(value_type(this->l->value), this->l->color, this, *_size, *NA);
+					tmp.l = this->l->l;
+					tmp.r = this->l->r;
+					this->l = new_node(tmp);
+					tmp.l = NULL;
+					tmp.r = NULL;
+				}
 				if (this->r)
-					this->r = new_node(*this->r);
-				this->_size++;
+				{
+					node tmp(value_type(this->r->value), this->r->color, this, *_size, *NA);
+					tmp.l = this->r->l;
+					tmp.r = this->r->r;
+					this->r = new_node(tmp);
+					tmp.l = NULL;
+					tmp.r = NULL;
+				}
+				(*this->_size)++;
 			}
 			node &operator=(const node &src) {
 				this->p = src.p;
@@ -83,7 +98,7 @@ namespace ft {
 					delete_node(*this->r);
 				if (this->l)
 					delete_node(*this->l);
-				_size--;
+				(*_size)--;
 				if (this->p && this->p->l == this)
 					this->p->l = NULL;
 				if (this->p && this->p->r == this)
@@ -91,22 +106,22 @@ namespace ft {
 			}
 			node *new_node(node &src)
 			{
-				node *ret = NA.allocate(1);
-				NA.construct(ret, src);
+				node *ret = NA->allocate(1);
+				NA->construct(ret, src);
 				return(ret);
 			}
 			void delete_node(node &n)
 			{
-				NA.destroy(&n);
-				NA.deallocate(&n, 1);
+				NA->destroy(&n);
+				NA->deallocate(&n, 1);
 			}
 			node			*r;
 			node			*l;
 			node			*p;
-			size_type 		&_size;
+			size_type 		*_size;
 			bool			color;
 			value_type		value;
-			typename remove_const<const node_alloc>::type		&NA;
+			typename remove_const<const node_alloc>::type		*NA;
 		};
 		template <typename U>
 		class iteratorT {
@@ -117,13 +132,11 @@ namespace ft {
 			typedef std::ptrdiff_t 						difference_type;
 			typedef std::bidirectional_iterator_tag iterator_category;
 		protected:
-//			typename remove_const<const node*>::type pos;
 			node *pos;
 		public:
 			iteratorT() : pos(NULL) {};
 			iteratorT(node* n) : pos(n){};
 			iteratorT(const node* n) : pos((node *)n){};
-//			iteratorT(typename remove_const<const node*>::type n) : pos(n){};
 			iteratorT(const iteratorT<value_type> &src) : pos(src.pos){}
 			iteratorT &operator=(const iteratorT &src) {
 				this->pos = (node *)src.pos;
@@ -216,12 +229,17 @@ namespace ft {
 		};
 		map (const map& x) : A(allocator_type(x.A)), _past_the_end(value_type(), 0, 0, this->_size, NA), _comp(x._comp), _size(0), NA(x.NA), first(NULL), last(NULL)
 		{
-			this->tree = new_node(*x.tree);
+			node tmp_node(value_type(x.tree->value), x.tree->color, &_past_the_end, this->_size, this->NA);
+			tmp_node.l = x.tree->l;
+			tmp_node.r = x.tree->r;
+			this->tree = new_node(tmp_node);
+			tmp_node.l = NULL;
+			tmp_node.r = NULL;
 			for (node * i = this->tree; i; i = i->l)
 				this->first = i;
 			for (node * i = this->tree; i; i = i->r)
 				this->last = i;
-			_past_the_end.NA = this->NA;
+			_past_the_end.NA = &this->NA;
 			_past_the_end.l = this->tree;
 			_past_the_end.r = this->tree;
 			this->tree->p = &_past_the_end;
@@ -230,13 +248,17 @@ namespace ft {
 		map& operator= (const map& x) {
 			this->clear();
 //			this->_comp = x._comp;
-//			this->A = x.A;
-			this->tree = new_node(*x.tree);
+			this->NA = x.NA;
+			node tmp_node(value_type(x.tree->value), x.tree->color, &_past_the_end, this->_size, NA);
+			tmp_node.l = x.tree->l;
+			tmp_node.r = x.tree->r;
+			this->tree = new_node(tmp_node);
+			tmp_node.l = NULL;
+			tmp_node.r = NULL;
 			for (node * i = this->tree; i; i = i->l)
 				this->first = i;
 			for (node * i = this->tree; i; i = i->r)
 				this->last = i;
-			this->_size = x._size;
 			_past_the_end.l = this->tree;
 			_past_the_end.r = this->tree;
 			this->tree->p = &_past_the_end;
@@ -258,14 +280,14 @@ namespace ft {
 		const_iterator begin() const {return (const_iterator(this->first ? this->first : &_past_the_end));}
 		iterator end() {return (iterator(&this->_past_the_end));}
 		const_iterator end() const{return (const_iterator(&this->_past_the_end));}
-		reverse_iterator rbegin() {return (reverse_iterator(this->last ? this->last : &_past_the_end));}
-		const_reverse_iterator rbegin() const {return (const_reverse_iterator(this->last ? this->last : &_past_the_end));}
-		reverse_iterator rend() {return (reverse_iterator(&this->_past_the_end));}
-		const_reverse_iterator rend() const{return (const_reverse_iterator(&this->_past_the_end));}
+		reverse_iterator rbegin() {return (reverse_iterator(this->end()));}
+		const_reverse_iterator rbegin() const {return (const_reverse_iterator(this->end()));}
+		reverse_iterator rend() {return (reverse_iterator(this->begin()));}
+		const_reverse_iterator rend() const{return (const_reverse_iterator(this->begin()));}
 
 		bool empty() const {return (!this->_size);}
 		size_type size() const {return (this->_size);}
-		size_type max_size() const {return(std::numeric_limits<difference_type>::max());}
+		size_type max_size() const {return(NA.max_size());}
 
 		void clear() {
 			if (tree)
@@ -324,9 +346,37 @@ namespace ft {
 			}
 		}
 
-//		void erase( iterator pos );
-//		void erase( iterator first, iterator last );
-//		size_type erase( const key_type& key );
+		void erase( iterator pos )
+		{
+			if (pos.pos == this->tree)
+			{
+				delete_node(pos.pos);
+				this->tree = NULL;
+				this->first = &_past_the_end;
+				this->last = &_past_the_end;
+				this->_past_the_end.l = NULL;
+				this->_past_the_end.r = NULL;
+			}
+
+		}
+
+		void erase( iterator first, iterator last )
+		{
+			while (first != last)
+			{
+				erase(first);
+				first++;
+			}
+		}
+
+		size_type erase( const key_type& key )
+		{
+			iterator tmp = find(key);
+			if (tmp == end())
+				return (0);
+			erase(tmp);
+			return (1);
+		}
 
 		void swap( map& other ) {
 			node_alloc	swap_alloc = this->NA;
@@ -339,14 +389,16 @@ namespace ft {
 
 			node		*tree_swap = this->tree;
 			this->tree = other.tree;
+			set_node(this->tree, (size_type *)&this->_size, (node_alloc *)&other.NA);
 			other.tree = tree_swap;
+			set_node(other.tree, (size_type *)&other._size, (node_alloc *)&other.NA);
 
 			other._past_the_end.l = other.tree;
 			other._past_the_end.r = other.tree;
 			other.tree->p = &other._past_the_end;
 
-			this->_past_the_end.l = other.tree;
-			this->_past_the_end.r = other.tree;
+			this->_past_the_end.l = this->tree;
+			this->_past_the_end.r = this->tree;
 			this->tree->p = &this->_past_the_end;
 
 			node		*first_swap = this->first;
@@ -402,6 +454,17 @@ namespace ft {
 		};
 
 	private:
+		void	set_node(node *n, size_type *size, node_alloc * NA)
+		{
+			if( n->l)
+				set_node(n->l, size, NA);
+			if( n->r)
+				set_node(n->r, size, NA);
+			if (size)
+				n->_size = size;
+			if (NA)
+				n->NA = NA;
+		}
 		node *new_node(node &n)
 		{
 			node *ret = NA.allocate(1);
@@ -491,6 +554,7 @@ namespace ft {
 				*ref = tmp;
 			return (P);
 		}
+
 		bool exist (node *n)
 		{
 			return (n && n != &this->_past_the_end);
@@ -522,7 +586,7 @@ namespace ft {
 					n->l = new_node(tmpnode);
 					ret = n->l;
 					if (n == first)
-						first = n->r;
+						first = n->l;
 				}
 			}
 			else													// equal
@@ -578,8 +642,7 @@ namespace ft {
 			}
 			return(ft::make_pair<iterator, bool>(iterator(ret), true));
 		}
-		node *get_uncle(node *n){
-
+		node *get_uncle(node *n) {
 			if (!exist(n->p))
 				return (NULL);
 			if (!exist(n->p->p))

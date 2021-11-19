@@ -85,6 +85,7 @@ namespace ft {
 				this->A.construct(this->data + i, T(other.data[i]));
 		}
 		~vector() {
+			this->clear();
 			this->A.deallocate(this->data, this->_capacity);
 		}
 		vector &operator=(const vector &other) {
@@ -164,7 +165,7 @@ namespace ft {
 		}
 
 		const_iterator begin() const {
-			return (iterator(this->data));
+			return (const_iterator(this->data));
 		}
 
 		iterator end() {
@@ -172,23 +173,23 @@ namespace ft {
 		}
 
 		const_iterator end() const {
-			return (iterator(this->data + _size));
+			return (const_iterator(this->data + _size));
 		}
 
 		reverse_iterator rbegin() {
-			return (reverse_iterator(this->data + _size - 1));
+			return (reverse_iterator(this->end()));
 		}
 
 		const_reverse_iterator rbegin() const {
-			return (const_reverse_iterator(this->data + _size - 1));
+			return (const_reverse_iterator(this->end()));
 		}
 
 		reverse_iterator rend() {
-			return (reverse_iterator(this->data - 1));
+			return (reverse_iterator(this->begin()));
 		}
 
 		const_reverse_iterator rend() const {
-			return (const_reverse_iterator(this->data - 1));
+			return (const_reverse_iterator(this->begin()));
 		}
 
 		bool empty() const {
@@ -206,10 +207,12 @@ namespace ft {
 		void reserve(size_type new_cap) {
 			if (new_cap <= this->_size)
 				return;
+			if (new_cap > this->max_size())
+				throw std::length_error("vector::reserve");
 			pointer tmp = A.allocate(new_cap);
 			for (size_type i = 0; i < this->_size; i++)
 				this->A.construct(tmp + i, this->data[i]);
-			A.deallocate(this->data, this->_size);
+			A.deallocate(this->data, this->_capacity);
 			this->_capacity = new_cap;
 			this->data = tmp;
 		}
@@ -218,15 +221,21 @@ namespace ft {
 			return (this->_capacity);
 		}
 
-		iterator insert( iterator pos, const T& value ){
+		iterator insert( iterator pos, const T& value ) {
 			size_type tmp = pos - this->begin();
 			if (this->_size + 1 > this->_capacity)
 				this->reserve(this->_size + 1);
-			pos = this->begin() + tmp;
+			pos = this->data + tmp;
+			for (iterator i = this->end(); i > pos; i--)
+				if (i < this->end())
+					i[0] = i[-1];
+				else
+					this->A.construct(i.operator->(), T(i[-1]));
+			if (pos < this->end())
+				*(pos) = T(value);
+			else
+				this->A.construct(pos.operator->(), T(value));
 			this->_size++;
-			for (iterator i = this->end() - 1; i != pos; i--)
-				*i = *(i - 1);
-			*pos = T(value);
 			return (pos);
 		}
 
@@ -236,27 +245,42 @@ namespace ft {
 			size_type tmp = pos - this->begin();
 			if (this->_size + count > this->_capacity)
 				this->reserve(this->_size + count);
+			pos = this->data + tmp;
+			for (iterator i = this->end() - 1; i >= pos; i--)
+				if (i + count < this->end())
+					i[count] = *i;
+				else
+					this->A.construct(i.operator->() + count, T(*i));
+			for (size_type i = count; i > 0; i--)
+				if (pos.operator->() + i - 1 < this->end().operator->())
+					*(pos.operator->() + i - 1 ) = T(value);
+				else
+					this->A.construct(pos.operator->() + i - 1, T(value));
 			this->_size += count;
-			pos = this->begin() + tmp;
-			for (iterator i = this->end() - 1; i != pos; i--)
-				*i = i[-count];
-			while (--count + 1 > 0)
-				this->A.construct(pos.operator->() + count, T(value));
+
 		}
 
 
 		template<class InputIt>
 		void insert( iterator pos, typename ft::enable_if<!is_integral<InputIt>::value, InputIt>::type first, InputIt last) {
 			int count = ft::distance(first, last);
+			if (!count)
+				return;
 			size_type tmp = pos - this->begin();
 			if (this->_size + count > this->_capacity)
 				this->reserve(this->_size + count);
-			pos = this->begin() + tmp;
+			pos = this->data + tmp;
+			for (iterator i = this->end() - 1; i >= pos; i--)
+				if (i + count < this->end())
+					i[count] = *i;
+				else
+					this->A.construct(i.operator->() + count, T(*i));
+			for (size_type i = count; i > 0; i--)
+				if (pos.operator->() + i - 1 < this->end().operator->())
+					*(pos.operator->() + i - 1 ) = *(--last);
+				else
+					this->A.construct(pos.operator->() + i - 1, *(--last));
 			this->_size += count;
-			for (iterator i = this->end() - 1; i != pos; i--)
-				*i = i[-count];
-			while (--count + 1 > 0)
-				this->A.construct(pos.operator->() + count, *(--last));
 		}
 
 		template<class InputIt>
@@ -267,15 +291,15 @@ namespace ft {
 		void resize( size_type count, T value = T() ) {
 			if (count < this->_size) {
 				for (size_type i = count; i < this->size(); i++)
-					this->A.destroy(this->data + i);
+					this->A.destroy(this->data + i - 1);
 				this->_size = count;
 			}
 			else if (count > this->_size)
 			{
 				if (count > _capacity)
 					this->reserve(count);
-				for (long int j = (long int)_size; j < (long int)count; j++)
-					this->A.construct(this->data + j, T(value));
+				for (size_type j = _size; j < (long int)count; j++)
+					this->A.construct(this->data + j, value);
 				this->_size = count;
 			}
 		}
@@ -314,12 +338,13 @@ namespace ft {
 		void push_back(const T &value) {
 			if (this->_size == this->_capacity)
 				this->reserve(this->_capacity == 0 ? 1 : this->_capacity * 2);
-			this->data[this->_size] = value;
+			this->A.construct(this->data + this->_size, value);
 			this->_size++;
 		}
 
 		void pop_back() {
 			this->_size--;
+			this->A.destroy(this->data + this->_size);
 		}
 
 		void swap(vector &other) {
