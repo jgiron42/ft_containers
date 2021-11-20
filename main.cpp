@@ -10,12 +10,31 @@
 #include <cstdio>
 #include <sys/time.h>
 #include <list>
+#include "shitty_allocator.hpp"
 
 
 
 
 
 int main() {
+
+	std::vector<int, shitty_allocator<int> > (12, 14);
+
+	shitty_allocator<int> A;
+	shitty_allocator<int> B;
+	int * a = A.allocate(1);
+	int b = 2;
+	A.construct(a, b);
+//	delete(a);
+	A.destroy(a);
+	A.deallocate(a, 1);
+
+
+
+
+
+
+
 /*	std::list<ft::pair<int, int> > l;
 	for (int i = 0; i < 10; i++)
 		l.push_back(ft::make_pair(i, i));
@@ -53,28 +72,28 @@ int main() {
 
 	// ================================= MAP =================================
 
-	int *zbeub = new int(12);
-	free(zbeub);
-	ft::map<int, int> m;
-	int tmp;
+//	int *zbeub = new int(12);
+//	free(zbeub);
+//	ft::map<int, int> m;
+//	int tmp;
 //	timer<false> t;
 
 //	struct timeval time;
 //	gettimeofday(&time, NULL);
 //	std::srand(time.tv_usec + (long int)1e6 * time.tv_sec);
 //	t.start();
-	for (int i = 0; i < 100; i++)
-	{
-		tmp = std::rand() % 100;
+//	for (int i = 0; i < 100; i++)
+//	{
+//		tmp = std::rand() % 100;
 //		m.print();
-		m.insert(ft::make_pair<int, int>(tmp, tmp));
+//		m.insert(ft::make_pair<int, int>(tmp, tmp));
 //		m.insert(ft::make_pair<int, int>(i, i));
 //		std::cout << "m.insert(ft::make_pair<int, int>(" << tmp << ", " << tmp << ")); " << std::endl;
-	}
+//	}
 //	std::cout << t << std::endl;
 //	t.stop();
 //	std::cout << t << std::endl;
-	m.print();
+//	m.print();
 //	tmp = std::rand() % 100;
 //	std::cout << tmp << std::endl;
 //	std::cout << m.lower_bound(tmp)->first << std::endl;

@@ -1,0 +1,109 @@
+//
+// Created by jgiron on 11/19/21.
+//
+
+#ifndef FT_CONTAINERS_SHITTY_ALLOCATOR_HPP
+#define FT_CONTAINERS_SHITTY_ALLOCATOR_HPP
+#include <sys/mman.h>
+#include <unistd.h>
+
+template< class T >
+class shitty_allocator {
+public:
+	typedef T *				pointer;
+	typedef const T *		const_pointer;
+	typedef void *			void_pointer;
+	typedef const void *	const_void_pointer;
+	typedef T				value_type;
+	typedef size_t			size_type;
+	typedef size_t			difference_type;
+
+	template<typename U>
+	struct rebind {
+		typedef shitty_allocator<U> other;
+	};
+
+private:
+	typedef struct s_node {
+		struct s_node				*next;
+		struct s_node				*prev;
+		size_type			n;
+	}				node;
+	typedef struct s_data {
+		struct s_data				*begin;
+		struct s_data				*end;
+	}				data;
+	data *_data;
+public:
+	shitty_allocator() :_data(mmap(NULL, sizeof(data), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)) {
+		if (_data == (void *)-1)
+			throw std::bad_alloc();
+		_data->begin = NULL;
+		_data->end = NULL;
+	};
+	shitty_allocator(shitty_allocator &src) : _data(src.data) {}
+	pointer allocate(size_type n)
+	{
+		return (allocate(n, NULL));
+	}
+	pointer allocate(size_type n, void *cvp)
+	{
+		node	*tmp = (node *)mmap(cvp, sizeof(node) + n * sizeof(value_type), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+		if (tmp == (void *)-1)
+			throw std::bad_alloc();
+		tmp->next = NULL;
+		tmp->n = n;
+		if (!list) {
+			list = tmp;
+			end = list;
+			tmp->prev = NULL;
+		}
+		else {
+			end->next = tmp;
+			tmp->prev = end;
+			end = tmp;
+		}
+		return ((pointer)((char*)tmp + sizeof(node)));
+	}
+	void	deallocate(pointer p, size_type n)
+	{
+		node *current = ((node *)((char*)p - sizeof (node)));
+		node *tmp = list;
+		while (tmp)
+		{
+			if (tmp == current)
+				break;
+			tmp = tmp->next;
+		}
+		if (!tmp)
+		{
+			write(2, "shitty_allocator: pointer being freed was not allocated\n", 56);
+			abort();
+		}
+		node *before = current->prev;
+		node *after = current->next;
+		if (before)
+			before->next = after;
+		else
+			list = after;
+		if (after)
+			after->prev = before;
+		munmap(current, sizeof(node) + n * sizeof(value_type));
+	}
+	void	construct(pointer p, const value_type &src)
+	{
+		new (p) value_type(src);
+	}
+	void	destroy(pointer p)
+	{
+		p->~value_type();
+	}
+	size_type max_size() const
+	{
+		return (std::numeric_limits<size_type>::max() / sizeof(value_type));
+	}
+	bool operator==(const shitty_allocator &other) const {return (false);}
+	bool operator!=(const shitty_allocator &other) const {return (true);}
+};
+
+#endif //FT_CONTAINERS_SHITTY_ALLOCATOR_HPP

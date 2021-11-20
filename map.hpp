@@ -218,16 +218,16 @@ namespace ft {
 		node					*last;
 	public:
 		explicit map (const key_compare& comp = key_compare(),
-					  const allocator_type& alloc = allocator_type()) : A(allocator_type(alloc)), tree(0), _past_the_end(value_type(),0, 0, this->_size, NA) , _comp(comp), _size(0), first(NULL), last(NULL) {};
+					  const allocator_type& alloc = allocator_type()) : A(alloc), tree(0), _past_the_end(value_type(),0, 0, this->_size, NA) , _comp(comp), _size(0), NA(this->A), first(NULL), last(NULL) {};
 		template <class InputIterator>
 		map (InputIterator first, InputIterator last,
 			 const key_compare& comp = key_compare(),
-			 const allocator_type& alloc = allocator_type()) : A(allocator_type(alloc)), tree(0), _past_the_end(value_type(),0, 0, this->_size, NA), _comp(comp), _size(0), first(NULL), last(NULL)
+			 const allocator_type& alloc = allocator_type()) : A(allocator_type(alloc)), tree(0), _past_the_end(value_type(),0, 0, this->_size, NA), _comp(comp), _size(0), NA(this->A), first(NULL), last(NULL)
 		{
 			 for (; first != last; first++)
 				 this->insert(*first);
 		};
-		map (const map& x) : A(allocator_type(x.A)), _past_the_end(value_type(), 0, 0, this->_size, NA), _comp(x._comp), _size(0), NA(x.NA), first(NULL), last(NULL)
+		map (const map& x) : A(x.A), _past_the_end(value_type(), 0, 0, this->_size, NA), _comp(x._comp), _size(0), NA(x.NA), first(NULL), last(NULL)
 		{
 			node tmp_node(value_type(x.tree->value), x.tree->color, &_past_the_end, this->_size, this->NA);
 			tmp_node.l = x.tree->l;
