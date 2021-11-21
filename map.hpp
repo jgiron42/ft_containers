@@ -394,9 +394,18 @@ namespace ft {
 		void swap( map& other ) {
 
 //			if (std::allocator_traits<allocator_type>::propagate_on_container_swap::value)
-				std::swap(this->NA, other.NA);
+//				std::swap(this->NA, other.NA);
 //			if (std::allocator_traits<allocator_type>::propagate_on_container_swap::value)
-				std::swap(this->A, other.A);
+//				std::swap(this->A, other.A);
+
+			node_alloc NAswap = this->NA;
+			this->NA = other.NA;
+			other.NA = NAswap;
+
+			node_alloc Aswap = this->A;
+			this->A = other.A;
+			other.A = NAswap;
+
 			size_type	swap_size = this->_size;
 			this->_size = other._size;
 			other._size = swap_size;
