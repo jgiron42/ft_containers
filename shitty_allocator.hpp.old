@@ -6,6 +6,19 @@
 #define FT_CONTAINERS_SHITTY_ALLOCATOR_HPP
 #include <sys/mman.h>
 #include <unistd.h>
+#include <vector>
+
+typedef struct shitty_allocator_s_node {
+	struct shitty_allocator_s_node				*next;
+	struct shitty_allocator_s_node				*prev;
+	size_t			n;
+}				shitty_allocator_node;
+typedef struct shitty_allocator_s_data {
+	shitty_allocator_node				*begin;
+	shitty_allocator_node				*end;
+}				shitty_allocator_data;
+
+std::vector<shitty_allocator_data> shitty_allocator_all_data;
 
 template< class T >
 class shitty_allocator {
@@ -17,6 +30,7 @@ public:
 	typedef T				value_type;
 	typedef size_t			size_type;
 	typedef size_t			difference_type;
+	struct propagate_on_container_copy_assignment : public std::true_type  {};
 
 	template<typename U>
 	struct rebind {
@@ -24,51 +38,40 @@ public:
 	};
 
 private:
-	typedef struct s_node {
-		struct s_node				*next;
-		struct s_node				*prev;
-		size_type			n;
-	}				node;
-	typedef struct s_data {
-		struct s_data				*begin;
-		struct s_data				*end;
-	}				data;
-	data *_data;
+	shitty_allocator_data *_data;
 public:
-	shitty_allocator() :_data(mmap(NULL, sizeof(data), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0)) {
-		if (_data == (void *)-1)
-			throw std::bad_alloc();
-		_data->begin = NULL;
-		_data->end = NULL;
+	shitty_allocator() :_data(&*shitty_allocator_all_data.insert(shitty_allocator_all_data.end(), (shitty_allocator_data){NULL, NULL})) {
 	};
-	shitty_allocator(shitty_allocator &src) : _data(src.data) {}
+	shitty_allocator(shitty_allocator &src) : _data(src._data) {}
+	template <typename U>
+	shitty_allocator(const shitty_allocator<U> &src) : _data(src._data) {}
 	pointer allocate(size_type n)
 	{
 		return (allocate(n, NULL));
 	}
 	pointer allocate(size_type n, void *cvp)
 	{
-		node	*tmp = (node *)mmap(cvp, sizeof(node) + n * sizeof(value_type), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+		shitty_allocator_node	*tmp = (shitty_allocator_node *)mmap(cvp, sizeof(shitty_allocator_node) + n * sizeof(value_type), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 		if (tmp == (void *)-1)
 			throw std::bad_alloc();
 		tmp->next = NULL;
 		tmp->n = n;
-		if (!list) {
-			list = tmp;
-			end = list;
+		if (!_data->begin) {
+			_data->begin = tmp;
+			_data->end = _data->begin;
 			tmp->prev = NULL;
 		}
 		else {
-			end->next = tmp;
-			tmp->prev = end;
-			end = tmp;
+			_data->end->next = tmp;
+			tmp->prev = _data->end;
+			_data->end = tmp;
 		}
-		return ((pointer)((char*)tmp + sizeof(node)));
+		return ((pointer)((char*)tmp + sizeof(shitty_allocator_node)));
 	}
 	void	deallocate(pointer p, size_type n)
 	{
-		node *current = ((node *)((char*)p - sizeof (node)));
-		node *tmp = list;
+		shitty_allocator_node *current = ((shitty_allocator_node *)((char*)p - sizeof (shitty_allocator_node)));
+		shitty_allocator_node *tmp = _data->begin;
 		while (tmp)
 		{
 			if (tmp == current)
@@ -77,18 +80,20 @@ public:
 		}
 		if (!tmp)
 		{
-			write(2, "shitty_allocator: pointer being freed was not allocated\n", 56);
+			write(2, "shitty_allocator: pointer being freed was not allocated by this allocator\n", 74);
 			abort();
 		}
-		node *before = current->prev;
-		node *after = current->next;
+		shitty_allocator_node *before = current->prev;
+		shitty_allocator_node *after = current->next;
 		if (before)
 			before->next = after;
 		else
-			list = after;
+			_data->begin = after;
 		if (after)
 			after->prev = before;
-		munmap(current, sizeof(node) + n * sizeof(value_type));
+		else
+			_data->end = before;
+		munmap(current, sizeof(shitty_allocator_node) + n * sizeof(value_type));
 	}
 	void	construct(pointer p, const value_type &src)
 	{

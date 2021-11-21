@@ -48,16 +48,16 @@ namespace ft {
 			}
 		};
 
-		typedef Alloc									allocator_type;
-		typedef typename allocator_type::reference					reference;
-		typedef typename allocator_type::const_reference			const_reference;
-		typedef typename allocator_type::pointer					pointer;
-		typedef typename allocator_type::const_pointer				const_pointer;
+		typedef Alloc															allocator_type;
+		typedef value_type &													reference;
+		typedef const value_type &												const_reference;
+		typedef typename std::allocator_traits<allocator_type>::pointer			pointer;
+		typedef typename std::allocator_traits<allocator_type>::const_pointer	const_pointer;
 		typedef size_t												size_type;
 	private:
 //		typedef typename remove_const<const allocator_type>::type	unconsted_alloc;
 		class node;
-		typedef typename Alloc::template rebind<node>::other node_alloc;
+		typedef typename std::allocator_traits<allocator_type>::template rebind_alloc<node> node_alloc;
 		class node {
 		public:
 			node(const value_type &value, bool color, node *parent, size_type &size, typename remove_const<const node_alloc>::type  &NA) :r(0), l(0), p(parent), _size(&size), color(color), value(value), NA(&NA) {
@@ -107,12 +107,12 @@ namespace ft {
 			node *new_node(node &src)
 			{
 				node *ret = NA->allocate(1);
-				NA->construct(ret, src);
+				std::allocator_traits<node_alloc>::construct(*this->NA, ret, src);
 				return(ret);
 			}
 			void delete_node(node &n)
 			{
-				NA->destroy(&n);
+				std::allocator_traits<node_alloc>::destroy(*this->NA, &n);
 				NA->deallocate(&n, 1);
 			}
 			node			*r;
@@ -227,7 +227,7 @@ namespace ft {
 			 for (; first != last; first++)
 				 this->insert(*first);
 		};
-		map (const map& x) : A(x.A), _past_the_end(value_type(), 0, 0, this->_size, NA), _comp(x._comp), _size(0), NA(x.NA), first(NULL), last(NULL)
+		map (const map& x) : A(std::allocator_traits<allocator_type>::select_on_container_copy_construction(x.A)), _past_the_end(value_type(), 0, 0, this->_size, NA), _comp(x._comp), _size(0), NA(std::allocator_traits<node_alloc>::select_on_container_copy_construction(x.NA)), first(NULL), last(NULL)
 		{
 			node tmp_node(value_type(x.tree->value), x.tree->color, &_past_the_end, this->_size, this->NA);
 			tmp_node.l = x.tree->l;
@@ -248,7 +248,12 @@ namespace ft {
 		map& operator= (const map& x) {
 			this->clear();
 //			this->_comp = x._comp;
-			this->NA = x.NA;
+			if (std::allocator_traits<node_alloc>::propagate_on_container_copy_assignment::value)
+//				this->NA = std::allocator_traits<node_alloc>::select_on_container_copy_construction(x.NA);
+				this->NA = x.NA;
+			if (std::allocator_traits<allocator_type>::propagate_on_container_copy_assignment::value)
+//				this->A = std::allocator_traits<allocator_type>::select_on_container_copy_construction(x.A);
+				this->A = x.A;
 			node tmp_node(value_type(x.tree->value), x.tree->color, &_past_the_end, this->_size, NA);
 			tmp_node.l = x.tree->l;
 			tmp_node.r = x.tree->r;
@@ -287,7 +292,7 @@ namespace ft {
 
 		bool empty() const {return (!this->_size);}
 		size_type size() const {return (this->_size);}
-		size_type max_size() const {return(NA.max_size());}
+		size_type max_size() const {return(std::allocator_traits<allocator_type>::max_size(this->NA));}
 
 		void clear() {
 			if (tree)
@@ -379,10 +384,11 @@ namespace ft {
 		}
 
 		void swap( map& other ) {
-			node_alloc	swap_alloc = this->NA;
-			this->NA = other.NA;
-			other.NA = swap_alloc;
 
+			if (std::allocator_traits<allocator_type>::propagate_on_container_swap::value)
+				std::swap(this->NA, other.NA);
+			if (std::allocator_traits<allocator_type>::propagate_on_container_swap::value)
+				std::swap(this->A, other.A);
 			size_type	swap_size = this->_size;
 			this->_size = other._size;
 			other._size = swap_size;
@@ -468,12 +474,12 @@ namespace ft {
 		node *new_node(node &n)
 		{
 			node *ret = NA.allocate(1);
-			NA.construct(ret, n);
+			std::allocator_traits<node_alloc>::construct(this->NA, ret, n);
 			return(ret);
 		}
 		void delete_node(node &n)
 		{
-			NA.destroy(&n);
+			std::allocator_traits<node_alloc>::destroy(this->NA, &n);
 			NA.deallocate(&n, 1);
 		}
 
