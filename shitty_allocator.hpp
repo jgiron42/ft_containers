@@ -4,14 +4,16 @@
 
 #ifndef FT_CONTAINERS_SHITTY_ALLOCATOR_HPP
 #define FT_CONTAINERS_SHITTY_ALLOCATOR_HPP
+
 #include <sys/mman.h>
 #include <unistd.h>
 #include <set>
 #include <vector>
 #include <memory>
 #include <type_traits>
+
 std::allocator<void *> a;
-std::vector<std::set<void *, std::less<void *>, std::allocator<void *>>, std::allocator<void *> > shitty_allocator_vector;
+std::vector<std::set<void *, std::less<void *>, std::allocator<void *> >, std::allocator<void *> > shitty_allocator_vector;
 
 template< class T >
 class shitty_allocator : private std::allocator<T> {

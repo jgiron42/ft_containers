@@ -16,6 +16,7 @@
 #include <iterator>
 #include <iostream>
 #include <memory>
+#include <ext/alloc_traits.h>
 #include <algorithm>
 #include <stdexcept>
 #include <sstream>
@@ -36,8 +37,8 @@ namespace ft {
 		typedef size_t size_type;
 		typedef value_type &reference;
 		typedef const value_type &const_reference;
-		typedef typename std::allocator_traits<allocator_type>::pointer pointer;
-		typedef typename std::allocator_traits<allocator_type>::const_pointer const_pointer;
+//		typedef typename ft::allocator_traits<allocator_type>::pointer pointer;
+//		typedef typename ft::allocator_traits<allocator_type>::const_pointer const_pointer;
 	private:
 
 	public:
@@ -59,7 +60,8 @@ namespace ft {
 		explicit vector(size_type count, const T &value = T(), const Allocator &alloc = Allocator())
 		: A(alloc), data(A.allocate(count)), _capacity(count), _size(count) {
 			for (size_type i = 0; i < count; i++)
-				std::allocator_traits<allocator_type>::construct(this->A, this->data + i, value);
+				this->A.construct(this->data + i, value);
+//				ft::allocator_traits<allocator_type>::construct(this->A, this->data + i, value);
 		}
 
 		template< class InputIt >
@@ -69,20 +71,24 @@ namespace ft {
 			this->_capacity = this->_size;
 			int j = 0;
 			for (InputIt i(first); i != last; i++)
-				std::allocator_traits<allocator_type>::construct(this->A, this->data + j++, *i);
+				this->A.construct(this->data + j++, *i);
+//				ft::allocator_traits<allocator_type>::construct(this->A, this->data + j++, *i);
 		}
 
 		template< class InputIt >
 		vector( InputIt first, typename ft::enable_if<is_integral<InputIt>::value, InputIt>::type last, const Allocator& alloc = Allocator()) :
 		A(alloc), data(A.allocate(static_cast<size_type>(first))), _capacity(static_cast<size_type>(first)), _size(static_cast<size_type>(first)) {
 			for (size_type i = 0; i < static_cast<size_type>(first); i++)
-				std::allocator_traits<allocator_type>::construct(this->A, this->data + i, static_cast<value_type>(last));
+				this->A.construct(this->data + i, static_cast<value_type>(last));
+//				ft::allocator_traits<allocator_type>::construct(this->A, this->data + i, static_cast<value_type>(last));
 		}
 
-		vector(const vector &other) : A(std::allocator_traits<allocator_type>::select_on_container_copy_construction(other.A)), data(A.allocate(other._capacity)),
+//		vector(const vector &other) : A(ft::allocator_traits<allocator_type>::select_on_container_copy_construction(other.A)), data(A.allocate(other._capacity)),
+		vector(const vector &other) : A(other.A), data(A.allocate(other._capacity)),
 									  _capacity(other._capacity), _size(other._size) {
 			for (size_type i = 0; i < other._size; i++)
-				std::allocator_traits<allocator_type>::construct(this->A, this->data + i, T(other.data[i]));
+				this->A.construct(this->data + i, T(other.data[i]));
+//				ft::allocator_traits<allocator_type>::construct(this->A, this->data + i, T(other.data[i]));
 		}
 		~vector() {
 			this->clear();
@@ -91,13 +97,13 @@ namespace ft {
 		vector &operator=(const vector &other) {
 			this->A.deallocate(this->data, this->_capacity);
 			this->data = this->A.allocate(other._capacity);
-			if (std::allocator_traits<allocator_type>::propagate_on_container_copy_assignment::value)
+//			if (ft::allocator_traits<allocator_type>::propagate_on_container_copy_assignment::value)
 				this->A = other.A;
-//				this->A = std::allocator_traits<allocator_type>::select_on_container_copy_construction(other.A);
 			this->_capacity = other._capacity;
 			this->_size = other._size;
 			for (size_type i = 0; i < other._size; i++)
-				std::allocator_traits<allocator_type>::construct(this->A, this->data + i, T(other.data[i]));
+				this->A.construct(this->data + i, T(other.data[i]));
+//				ft::allocator_traits<allocator_type>::construct(this->A, this->data + i, T(other.data[i]));
 			return (*this);
 		}
 
@@ -109,7 +115,8 @@ namespace ft {
 			}
 			this->_size = count;
 			for (size_type i = 0; i < count; i++)
-				std::allocator_traits<allocator_type>::construct(this->A, this->data + i, T(value));
+				this->A.construct(this->data + i, T(value));
+//				ft::allocator_traits<allocator_type>::construct(this->A, this->data + i, T(value));
 		}
 
 		template< class InputIt >
@@ -124,7 +131,8 @@ namespace ft {
 			this->_size = count;
 			int j = 0;
 			for (InputIt i(first); i != last; i++)
-				std::allocator_traits<allocator_type>::construct(this->A, this->data + j++, *i);
+				this->A.construct(this->data + j++, *i);
+//				ft::allocator_traits<allocator_type>::construct(this->A, this->data + j++, *i);
 		}
 
 		allocator_type get_allocator() const { return allocator_type(this->A); }
@@ -204,7 +212,8 @@ namespace ft {
 		}
 
 		size_type max_size() const {
-			return (std::allocator_traits<allocator_type>::max_size(this->A));
+//			return (ft::allocator_traits<allocator_type>::max_size(this->A));
+			return (this->A.max_size());
 		}
 
 		void reserve(size_type new_cap) {
@@ -214,7 +223,8 @@ namespace ft {
 				throw std::length_error("vector::reserve");
 			pointer tmp = A.allocate(new_cap);
 			for (size_type i = 0; i < this->_size; i++)
-				std::allocator_traits<allocator_type>::construct(this->A, tmp + i, this->data[i]);
+				this->A.construct(tmp + i, this->data[i]);
+//				ft::allocator_traits<allocator_type>::construct(this->A, tmp + i, this->data[i]);
 			A.deallocate(this->data, this->_capacity);
 			this->_capacity = new_cap;
 			this->data = tmp;
@@ -233,11 +243,13 @@ namespace ft {
 				if (i < this->end())
 					i[0] = i[-1];
 				else
-					std::allocator_traits<allocator_type>::construct(this->A, i.operator->(), T(i[-1]));
+					this->A.construct(i.operator->(), T(i[-1]));
+//					ft::allocator_traits<allocator_type>::construct(this->A, i.operator->(), T(i[-1]));
 			if (pos < this->end())
 				*(pos) = T(value);
 			else
-				std::allocator_traits<allocator_type>::construct(this->A, pos.operator->(), T(value));
+				this->A.construct(pos.operator->(), T(value));
+//				ft::allocator_traits<allocator_type>::construct(this->A, pos.operator->(), T(value));
 			this->_size++;
 			return (pos);
 		}
@@ -253,12 +265,14 @@ namespace ft {
 				if (i + count < this->end())
 					i[count] = *i;
 				else
-					std::allocator_traits<allocator_type>::construct(this->A, i.operator->() + count, T(*i));
+					this->A.construct(i.operator->() + count, T(*i));
+//					ft::allocator_traits<allocator_type>::construct(this->A, i.operator->() + count, T(*i));
 			for (size_type i = count; i > 0; i--)
 				if (pos.operator->() + i - 1 < this->end().operator->())
 					*(pos.operator->() + i - 1 ) = T(value);
 				else
-					std::allocator_traits<allocator_type>::construct(this->A, pos.operator->() + i - 1, T(value));
+					this->A.construct(pos.operator->() + i - 1, T(value));
+//					ft::allocator_traits<allocator_type>::construct(this->A, pos.operator->() + i - 1, T(value));
 			this->_size += count;
 
 		}
@@ -277,12 +291,14 @@ namespace ft {
 				if (i + count < this->end())
 					i[count] = *i;
 				else
-					std::allocator_traits<allocator_type>::construct(this->A, i.operator->() + count, T(*i));
+					this->A.construct(i.operator->() + count, T(*i));
+//					ft::allocator_traits<allocator_type>::construct(this->A, i.operator->() + count, T(*i));
 			for (size_type i = count; i > 0; i--)
 				if (pos.operator->() + i - 1 < this->end().operator->())
 					*(pos.operator->() + i - 1 ) = *(--last);
 				else
-					std::allocator_traits<allocator_type>::construct(this->A, pos.operator->() + i - 1, *(--last));
+					this->A.construct(pos.operator->() + i - 1, *(--last));
+//					ft::allocator_traits<allocator_type>::construct(this->A, pos.operator->() + i - 1, *(--last));
 			this->_size += count;
 		}
 
@@ -294,7 +310,8 @@ namespace ft {
 		void resize( size_type count, T value = T() ) {
 			if (count < this->_size) {
 				for (size_type i = count; i < this->size(); i++)
-					std::allocator_traits<allocator_type>::destroy(this->A, this->data + i - 1);
+					this->A.destroy(this->data + i - 1);
+//					ft::allocator_traits<allocator_type>::destroy(this->A, this->data + i - 1);
 				this->_size = count;
 			}
 			else if (count > this->_size)
@@ -302,20 +319,23 @@ namespace ft {
 				if (count > _capacity)
 					this->reserve(count);
 				for (size_type j = _size; j < (long int)count; j++)
-					std::allocator_traits<allocator_type>::construct(this->A, this->data + j, value);
+					this->A.construct(this->data + j, value);
+//					ft::allocator_traits<allocator_type>::construct(this->A, this->data + j, value);
 				this->_size = count;
 			}
 		}
 
 		void clear() {
 			for (size_type i = 0; i < this->size(); i++)
-				std::allocator_traits<allocator_type>::destroy(this->A, this->data + i);
+				this->A.destroy(this->data + i);
+//				ft::allocator_traits<allocator_type>::destroy(this->A, this->data + i);
 			this->_size = 0;
 		}
 
 		iterator erase(iterator pos) {
 			iterator ret = pos;
-			std::allocator_traits<allocator_type>::destroy(this->A, pos.operator->());
+			this->A.destroy(pos.operator->());
+//			ft::allocator_traits<allocator_type>::destroy(this->A, pos.operator->());
 			while (pos + 1 != this->end())
 			{
 				pos[0] = pos[1];
@@ -328,7 +348,8 @@ namespace ft {
 		iterator erase( iterator first, iterator last ) {
 			iterator ret = first;
 			for (iterator i = first; i != last; i++)
-				std::allocator_traits<allocator_type>::destroy(this->A, i.operator->());
+				this->A.destroy(i.operator->());
+//				ft::allocator_traits<allocator_type>::destroy(this->A, i.operator->());
 			while (last != this->end())
 			{
 				*first = *last;
@@ -341,18 +362,23 @@ namespace ft {
 		void push_back(const T &value) {
 			if (this->_size == this->_capacity)
 				this->reserve(this->_capacity == 0 ? 1 : this->_capacity * 2);
-			std::allocator_traits<allocator_type>::construct(this->A, this->data + this->_size, value);
+			this->A.construct(this->data + this->_size, value);
+//			ft::allocator_traits<allocator_type>::construct(this->A, this->data + this->_size, value);
 			this->_size++;
 		}
 
 		void pop_back() {
 			this->_size--;
-			std::allocator_traits<allocator_type>::destroy(this->A, this->data + this->_size);
+			this->A.destroy(this->data + this->_size);
+//			ft::allocator_traits<allocator_type>::destroy(this->A, this->data + this->_size);
 		}
 
 		void swap(vector &other) {
-			if (std::allocator_traits<allocator_type>::propagate_on_container_swap::value)
-				std::swap(this->A, other.A);
+//			if (ft::allocator_traits<allocator_type>::propagate_on_container_swap::value)
+//				std::swap(this->A, other.A);
+			allocator_type swap_alloc = this->A;
+			this->A = other.A;
+			other.A = swap_alloc;
 			pointer tmpdata = this->data;
 			this->data = other.data;
 			other.data = tmpdata;
