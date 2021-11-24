@@ -17,6 +17,10 @@
 
 #define BLACK	1
 #define RED		0
+#define _FT_MAP_PARENT_REF(n) (n->p->r == n ? n->p->r : n->p->l)
+#define _FT_MAP_SIB(n) (n->p->r == n ? n->p->l : n->p->r)
+#define _FT_MAP_CLO(n) (n->p->r == n ? _FT_MAP_SIB(n)->r : _FT_MAP_SIB(n)->l)
+#define _FT_MAP_DIS(n) (n->p->r == n ? _FT_MAP_SIB(n)->l : _FT_MAP_SIB(n)->r)
 
 #define DEBUG
 
@@ -63,7 +67,7 @@ namespace ft {
 	private:
 		class node;
 //		typedef typename std::allocator_traits<allocator_type>::template rebind_alloc<node> node_alloc;
-		typedef typename allocator_type::template rebind<node>::type node_alloc;
+		typedef typename allocator_type::template rebind<node>::other node_alloc;
 		class node {
 		public:
 			node(const value_type &value, bool color, node *parent, size_type &size, typename remove_const<const node_alloc>::type  &NA) :r(0), l(0), p(parent), _size(&size), color(color), value(value), NA(&NA) {
@@ -361,16 +365,98 @@ namespace ft {
 
 		void erase( iterator pos )
 		{
-			if (pos.pos == this->tree)
+			std::cout << "erase " << pos.pos->value.first << std::endl;
+			node *tmp;
+			node *n = pos.pos;
+			if (pos.pos == this->tree && !n->r && !n->l)
 			{
-				delete_node(pos.pos);
+				delete_node(*pos.pos);
 				this->tree = NULL;
 				this->first = &_past_the_end;
 				this->last = &_past_the_end;
 				this->_past_the_end.l = NULL;
 				this->_past_the_end.r = NULL;
+				return;
+			}
+			if (n->l && n->r)
+			{
+				swap_node(n, (++iterator(pos)).pos);
+			}
+			if (n->color == RED)
+			{
+				_FT_MAP_PARENT_REF(n) = NULL;
+				delete_node(*pos.pos);
+				return;
+			}
+			if (n->l && n->l->color == RED)
+			{
+				n->l->color = BLACK;
+				_FT_MAP_PARENT_REF(n) = n->l;
+				n->l->p = n->p;
+				n->l = NULL;
+				delete_node(*pos.pos);
+				return;
+			}
+			if (n->r && n->r->color == RED)
+			{
+				n->r->color = BLACK;
+				_FT_MAP_PARENT_REF(n) = n->r;
+				n->r->p = n->p;
+				n->r = NULL;
+				delete_node(*pos.pos);
+				return;
 			}
 
+			if (n->p->color == RED)
+			{
+				if (!_FT_MAP_SIB(n))
+				{
+					n->p->color = BLACK;
+				}
+				else
+				{
+					if (_FT_MAP_CLO(n)) {
+						_FT_MAP_CLO(n)->color = BLACK;
+						if (!_FT_MAP_DIS(n)) {
+							_FT_MAP_SIB(n)->color = RED;
+							if (n->p->r == n)
+								rotate_right(_FT_MAP_SIB(n));
+							else
+								rotate_left(_FT_MAP_SIB(n));
+						}
+					}
+					if (n->p->l == n)
+						rotate_right(n->p);
+					else
+						rotate_left(n->p);
+				}
+			}
+			else
+			{
+				if (_FT_MAP_SIB(n)->color == RED)
+					_FT_MAP_CLO(n)->color = RED;
+				else if (_FT_MAP_CLO(n)) {
+					_FT_MAP_CLO(n)->color = RED;
+					if (!_FT_MAP_DIS(n)) {
+						_FT_MAP_SIB(n)->color = BLACK;
+						if (n->p->r == n)
+							rotate_right(_FT_MAP_SIB(n));
+						else
+							rotate_left(_FT_MAP_SIB(n));
+					}
+				}
+				if (n->p->l == n)
+					rotate_right(n->p);
+				else
+					rotate_left(n->p);
+			}
+			_FT_MAP_PARENT_REF(pos.pos) = NULL;
+			if (n == first)
+				first = n->p;
+			if (n == last)
+				last = n->p;
+			delete_node(*pos.pos);
+			return;
 		}
 
 		void erase( iterator first, iterator last )
@@ -477,6 +563,45 @@ namespace ft {
 		};
 
 	private:
+		void 	swap_node(node *a, node *b)
+		{
+			node *swap_node;
+
+			if (a->r)
+				a->r->p = b;
+			if (a->l)
+				a->l->p = b;
+			if (b->r)
+				b->r->p = a;
+			if (b->l)
+				b->l->p = a;
+			swap_node = a->r;
+			a->r = b->r;
+			b->r = swap_node;
+
+			swap_node = a->l;
+			a->l = b->l;
+			b->l = swap_node;
+
+			if (a->p->r == a)
+				a->p->r = b;
+			else
+				a->p->l = b;
+			if (b->p->r == b)
+				b->p->r = a;
+			else
+				b->p->l = a;
+			swap_node = a->p;
+			a->p = b->p;
+			b->p = swap_node;
+			bool swap_color = a->color;
+			a->color = b->color;
+			b->color = swap_color;
+			if (this->tree == a)
+				this->tree = b;
+			else if (this->tree == b)
+				this->tree = a;
+		}
 		void	set_node(node *n, size_type *size, node_alloc * NA)
 		{
 			if( n->l)
@@ -700,11 +825,26 @@ namespace ft {
 			char tmp[1000] = {};
 			if (this->tree)
 				print_node(this->tree, 0, tmp);
+			rb_test();
 		}
-		void test_rotate_left (){
-			this->tree = this->rotate_left(this->tree);
-		};
+		void	rb_test()
+		{
+			if (is_rb_shaped(this->tree) == -1)
+				std::cout << "!!!!!!! NOT IN RB-SHAPE !!!!!!!!" << std::endl;
+		}
 	private:
+		int is_rb_shaped(node *n)
+		{
+			if (!n)
+				return (0);
+			if (n->p && n->p->color == RED && n->color == RED)
+				return (-1);
+			int r1 = is_rb_shaped(n->l);
+			int r2 = is_rb_shaped(n->r);
+			if (r1 == -1 || r2 == -1 || r1 != r2)
+				return (-1);
+			return (r1 + (n->color == BLACK));
+		}
 		void print_node(node* n, int depth, char *tmp)  {
 			if (n->l)
 				print_node(n->l, depth + 1, tmp);
