@@ -406,7 +406,7 @@ namespace ft {
 				delete_node(*pos.pos);
 				return;
 			}
-
+			zbeub:
 			if (n->p->color == RED)
 			{
 				if (!_FT_MAP_SIB(n))
@@ -416,13 +416,16 @@ namespace ft {
 				else
 				{
 					if (_FT_MAP_CLO(n)) {
-						_FT_MAP_CLO(n)->color = BLACK;
 						if (!_FT_MAP_DIS(n)) {
 							_FT_MAP_SIB(n)->color = RED;
 							if (n->p->r == n)
 								rotate_right(_FT_MAP_SIB(n));
 							else
 								rotate_left(_FT_MAP_SIB(n));
+						}
+						else
+						{
+							n->p->color;
 						}
 					}
 					if (n->p->l == n)
@@ -433,12 +436,28 @@ namespace ft {
 			}
 			else
 			{
-				if (_FT_MAP_SIB(n)->color == RED)
-					_FT_MAP_CLO(n)->color = RED;
-				else if (_FT_MAP_CLO(n)) {
-					_FT_MAP_CLO(n)->color = RED;
+				if (_FT_MAP_SIB(n)->color == BLACK)
+				{
+					n->p->color = RED;
+					if (_FT_MAP_CLO(n) && !_FT_MAP_DIS(n))
+					{
+						_FT_MAP_SIB(n)->color = RED;
+						_FT_MAP_CLO(n)->color = BLACK;
+						if (n->p->r == n)
+							rotate_right(_FT_MAP_SIB(n));
+						else
+							rotate_left(_FT_MAP_SIB(n));
+					}
+					n = n->p->p;
+					goto zbeub;
+				}
+				else {
+					_FT_MAP_SIB(n)->color = BLACK;
+//					invert_color(_FT_MAP_CLO(n));
+//					_FT_MAP_DIS(n)->color = RED;
+//					_FT_MAP_CLO(n)->color = RED;
 					if (!_FT_MAP_DIS(n)) {
-						_FT_MAP_SIB(n)->color = BLACK;
+//						_FT_MAP_SIB(n)->color = BLACK;
 						if (n->p->r == n)
 							rotate_right(_FT_MAP_SIB(n));
 						else
@@ -451,10 +470,10 @@ namespace ft {
 					rotate_left(n->p);
 			}
 			_FT_MAP_PARENT_REF(pos.pos) = NULL;
-			if (n == first)
-				first = n->p;
-			if (n == last)
-				last = n->p;
+			if (pos.pos == first)
+				first = pos.pos->p;
+			if (pos.pos == last)
+				last = pos.pos->p;
 			delete_node(*pos.pos);
 			return;
 		}
@@ -601,6 +620,15 @@ namespace ft {
 				this->tree = b;
 			else if (this->tree == b)
 				this->tree = a;
+		}
+		void 	invert_color(node *a)
+		{
+			if (a)
+				a->color ^= 1;
+			if (a->r)
+				invert_color(a->r);
+			if (a->l)
+				invert_color(a->l);
 		}
 		void	set_node(node *n, size_type *size, node_alloc * NA)
 		{
@@ -821,16 +849,20 @@ namespace ft {
 
 #ifdef DEBUG
 	public:
-		void print() {
+		bool print() {
 			char tmp[1000] = {};
 			if (this->tree)
 				print_node(this->tree, 0, tmp);
-			rb_test();
+			return rb_test();
 		}
-		void	rb_test()
+		bool	rb_test()
 		{
 			if (is_rb_shaped(this->tree) == -1)
+			{
 				std::cout << "!!!!!!! NOT IN RB-SHAPE !!!!!!!!" << std::endl;
+				return (0);
+			}
+			return (1);
 		}
 	private:
 		int is_rb_shaped(node *n)

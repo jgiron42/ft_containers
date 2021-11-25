@@ -123,23 +123,23 @@ int	test_erase()
 	for (int i = 0; i < 50; i++)
 	{
 		tmp = std::rand() % 100;
-		mft.insert(ft::make_pair<int, int>(tmp, tmp));
-		mstd.insert(std::pair<int, int>(tmp, tmp));
-		v.push_back(tmp);
+		mft.insert(ft::make_pair<int, int>(i, i));
+//		mft.insert(ft::make_pair<int, int>(tmp, tmp));
+		mstd.insert(std::pair<int, int>(i, i));
+//		mstd.insert(std::pair<int, int>(tmp, tmp));
+		v.push_back(i);
+//		v.push_back(tmp);
 		str1 += SSTR(tmp);
 		if (i != 49)
 			str1 += ", ";
 //		std::cout << tmp << ", ";
 	}
 	str1+= "}";
-	mft.rb_test();
-	while (v.size() > 30)
+	while (mft.print() && v.size() > 45)
 	{
 		tmp = v[std::rand() % v.size()];
 		mft.erase(tmp);
 		mstd.erase(tmp);
-//		mft.rb_test();
-		mft.print();
 		str2 += SSTR(tmp);
 		if (v.size() > 1)
 			str2 += ", ";
@@ -164,8 +164,8 @@ int main() {
 	ft::map<int, int> m;
 	int tmp;
 
-	test_erase();
-	return 0;
+//	test_erase();
+//	return 0;
 
 	struct timeval time;
 	gettimeofday(&time, NULL);
@@ -175,10 +175,11 @@ int main() {
 //		tmp = std::rand() % 100;
 //		m.print();
 //		m.insert(ft::make_pair<int, int>(tmp, tmp));
-//		m.insert(ft::make_pair<int, int>(i, i));
+		m.insert(ft::make_pair<int, int>(i, i));
 //		std::cout << tmp << ", ";
 	}
-
+	m.print();
+/*
 	std::map<int, int> mstd = fill_std(std::vector<int>({10, 65, 31, 39, 56, 55, 10, 8, 20, 52, 3, 74, 84, 88, 2, 76, 2, 61, 16, 5, 64, 47, 83, 94, 18, 59, 61, 90, 88, 96, 3, 99, 13, 35, 90, 21, 42, 1, 29, 62, 5, 33, 89, 41, 21, 91, 70, 75, 52, 86}));
 	m = fill_ft(std::vector<int>({10, 65, 31, 39, 56, 55, 10, 8, 20, 52, 3, 74, 84, 88, 2, 76, 2, 61, 16, 5, 64, 47, 83, 94, 18, 59, 61, 90, 88, 96, 3, 99, 13, 35, 90, 21, 42, 1, 29, 62, 5, 33, 89, 41, 21, 91, 70, 75, 52, 86}));
 //	m = fill_ft(test_tree2());
@@ -214,5 +215,5 @@ int main() {
 //		std::cout << i2++->first << " ";
 //	std::cout << std::endl;
 	is_equal &= (i1 == m.end() && i2 == mstd.end());
-	std::cout << (is_equal ? "OK" : "KO") << std::endl;
+	std::cout << (is_equal ? "OK" : "KO") << std::endl;*/
 }
