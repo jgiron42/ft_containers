@@ -4,7 +4,7 @@
 #include "enable_if.hpp"
 #include "map.hpp"
 #include <map>
-//#include "vector.hpp"
+#include "vector.hpp"
 #include <vector>
 #include <cstdlib>
 #include <ctime>
@@ -20,77 +20,6 @@
 #define SSTR( x ) static_cast< std::ostringstream & >( ( std::ostringstream() << std::dec << x ) ).str()
 
 //#include "basic_allocator.hpp"
-
-
-void test_tree1(ft::map<int, int> &m)
-{
-	m.insert(ft::make_pair<int, int>(4, 4));
-	m.insert(ft::make_pair<int, int>(65, 65));
-	m.insert(ft::make_pair<int, int>(23, 23));
-	m.insert(ft::make_pair<int, int>(26, 26));
-	m.insert(ft::make_pair<int, int>(86, 86));
-	m.insert(ft::make_pair<int, int>(64, 64));
-	m.insert(ft::make_pair<int, int>(95, 95));
-	m.insert(ft::make_pair<int, int>(24, 24));
-	m.insert(ft::make_pair<int, int>(32, 32));
-	m.insert(ft::make_pair<int, int>(87, 87));
-	m.insert(ft::make_pair<int, int>(25, 25));
-	m.insert(ft::make_pair<int, int>(82, 82));
-	m.insert(ft::make_pair<int, int>(95, 95));
-	m.insert(ft::make_pair<int, int>(80, 80));
-	m.insert(ft::make_pair<int, int>(69, 69));
-	m.insert(ft::make_pair<int, int>(12, 12));
-	m.insert(ft::make_pair<int, int>(93, 93));
-	m.insert(ft::make_pair<int, int>(28, 28));
-	m.insert(ft::make_pair<int, int>(66, 66));
-	m.insert(ft::make_pair<int, int>(50, 50));
-	m.insert(ft::make_pair<int, int>(38, 38));
-	m.insert(ft::make_pair<int, int>(48, 48));
-	m.insert(ft::make_pair<int, int>(92, 92));
-	m.insert(ft::make_pair<int, int>(92, 92));
-	m.insert(ft::make_pair<int, int>(64, 64));
-	m.insert(ft::make_pair<int, int>(20, 20));
-	m.insert(ft::make_pair<int, int>(15, 15));
-	m.insert(ft::make_pair<int, int>(42, 42));
-	m.insert(ft::make_pair<int, int>(3, 3));
-	m.insert(ft::make_pair<int, int>(32, 32));
-}
-
-std::vector<int> test_tree2()
-{
-	std::vector<int> ret;
-	ret.push_back(99);
-	ret.push_back(59);
-	ret.push_back(19);
-	ret.push_back(32);
-	ret.push_back(55);
-	ret.push_back(8);
-	ret.push_back(80);
-	ret.push_back(66);
-	ret.push_back(49);
-	ret.push_back(89);
-	ret.push_back(39);
-	ret.push_back(83);
-	ret.push_back(57);
-	ret.push_back(98);
-	ret.push_back(67);
-	ret.push_back(35);
-	ret.push_back(88);
-	ret.push_back(45);
-	ret.push_back(8);
-	ret.push_back(97);
-	ret.push_back(98);
-	ret.push_back(38);
-	ret.push_back(60);
-	ret.push_back(40);
-	ret.push_back(29);
-	ret.push_back(22);
-	ret.push_back(81);
-	ret.push_back(90);
-	ret.push_back(79);
-	ret.push_back(83);
-	return(ret);
-}
 
 std::map<int,int> fill_std(std::vector<int> v)
 {
@@ -159,6 +88,30 @@ int	test_erase()
 	str2 += "}";
 
 }
+void	test_vector();
+
+template <class T>
+void test_ninsert(int n, T &v)
+{
+	timer<true> t;
+	while (--n >= 0)
+		v.insert(v.begin(), n);
+}
+
+class foo {
+public:
+
+	foo() {
+		std::cout << this << std::endl;
+	}
+	foo(foo const &) {
+		std::cout << "copy " << this << std::endl;
+	}
+	foo &operator=(foo const &)
+	{
+		std::cout << "assign " << this << std::endl;
+	}
+};
 
 int main() {
 	ft::map<int, int> m;
@@ -166,6 +119,25 @@ int main() {
 
 //	test_erase();
 //	return 0;
+	std::vector<int> vstd;
+	ft::vector<int> vft;
+//	foo a = foo();
+	std::vector<foo> vfoo;
+	vfoo.insert(vfoo.begin(), foo());
+//	vfoo.insert(vfoo.begin(), foo());
+//	vfoo.insert(vfoo.begin(), foo());
+	for (int n = 1; n <= 100000; n *= 10)
+	{
+		std::cout << "std " << n << std::endl;
+		test_ninsert(n, vstd);
+		std::cout << " us" <<  std::endl;
+		std::cout << "ft " << n << std::endl;
+		test_ninsert(n, vft);
+		std::cout << " us" <<  std::endl;
+
+	}
+//	test_vector();
+/*
 
 	struct timeval time;
 	gettimeofday(&time, NULL);

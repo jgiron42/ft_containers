@@ -425,7 +425,7 @@ namespace ft {
 						}
 						else
 						{
-							n->p->color;
+//							n->p->color;
 						}
 					}
 					if (n->p->l == n)

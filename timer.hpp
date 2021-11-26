@@ -44,7 +44,7 @@ public:
 
 		if (!t.is_stopped) {
 			gettimeofday(&tmp, NULL);
-			std::cout << tmp.tv_sec << " " << t.begin.tv_sec << std::endl;
+//			std::cout << tmp.tv_sec << " " << t.begin.tv_sec << std::endl;
 			diff = (tmp.tv_sec - t.begin.tv_sec) * 1000000 + (tmp.tv_usec - t.begin.tv_usec);
 		}
 		else

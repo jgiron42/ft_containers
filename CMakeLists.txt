@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 project(ft_containers CXX)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 98)
 
 include_directories(.)
 #set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
@@ -17,4 +17,6 @@ add_executable(ft_containers
         map.hpp
         distance.hpp vector_iterator.hpp
         shitty_allocator.hpp
-        main.cpp)
+        main.cpp
+        test/test_vector.cpp
+        )

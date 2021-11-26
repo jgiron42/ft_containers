@@ -51,74 +51,74 @@ namespace ft {
 		typedef typename iterator_traits<iterator>::difference_type difference_type;
 	private:
 		allocator_type A;
-		pointer				data;
+		pointer				_data;
 		size_type _capacity;
 		size_type _size;
 	public:
-		vector() : A(allocator_type()), data(A.allocate(0)), _capacity(0), _size(0) {}
+		vector() : A(allocator_type()), _data(A.allocate(1)), _capacity(1), _size(0) {}
 
-		explicit vector(const Allocator &alloc) : A(alloc), data(A.allocate(1)), _capacity(1), _size(0) {}
+		explicit vector(const Allocator &alloc) : A(alloc), _data(A.allocate(1)), _capacity(1), _size(0) {}
 
 		explicit vector(size_type count, const T &value = T(), const Allocator &alloc = Allocator())
-		: A(alloc), data(A.allocate(count)), _capacity(count), _size(count) {
+		: A(alloc), _data(A.allocate(count)), _capacity(count), _size(count) {
 			for (size_type i = 0; i < count; i++)
-				this->A.construct(this->data + i, value);
-//				ft::allocator_traits<allocator_type>::construct(this->A, this->data + i, value);
+				this->A.construct(this->_data + i, value);
+//				ft::allocator_traits<allocator_type>::construct(this->A, this->_data + i, value);
 		}
 
 		template< class InputIt >
 		vector( InputIt first, typename ft::enable_if<!is_integral<InputIt>::value, InputIt>::type last, const Allocator& alloc = Allocator()) : A(alloc) {
 			this->_size = ft::distance(first, last);
-			this->data = A.allocate(this->_size);
+			this->_data = A.allocate(this->_size);
 			this->_capacity = this->_size;
 			int j = 0;
 			for (InputIt i(first); i != last; i++)
-				this->A.construct(this->data + j++, *i);
-//				ft::allocator_traits<allocator_type>::construct(this->A, this->data + j++, *i);
+				this->A.construct(this->_data + j++, *i);
+//				ft::allocator_traits<allocator_type>::construct(this->A, this->_data + j++, *i);
 		}
 
 		template< class InputIt >
 		vector( InputIt first, typename ft::enable_if<is_integral<InputIt>::value, InputIt>::type last, const Allocator& alloc = Allocator()) :
-		A(alloc), data(A.allocate(static_cast<size_type>(first))), _capacity(static_cast<size_type>(first)), _size(static_cast<size_type>(first)) {
+		A(alloc), _data(A.allocate(static_cast<size_type>(first))), _capacity(static_cast<size_type>(first)), _size(static_cast<size_type>(first)) {
 			for (size_type i = 0; i < static_cast<size_type>(first); i++)
-				this->A.construct(this->data + i, static_cast<value_type>(last));
-//				ft::allocator_traits<allocator_type>::construct(this->A, this->data + i, static_cast<value_type>(last));
+				this->A.construct(this->_data + i, static_cast<value_type>(last));
+//				ft::allocator_traits<allocator_type>::construct(this->A, this->_data + i, static_cast<value_type>(last));
 		}
 
-//		vector(const vector &other) : A(ft::allocator_traits<allocator_type>::select_on_container_copy_construction(other.A)), data(A.allocate(other._capacity)),
-		vector(const vector &other) : A(other.A), data(A.allocate(other._capacity)),
+//		vector(const vector &other) : A(ft::allocator_traits<allocator_type>::select_on_container_copy_construction(other.A)), _data(A.allocate(other._capacity)),
+		vector(const vector &other) : A(other.A), _data(A.allocate(other._capacity)),
 									  _capacity(other._capacity), _size(other._size) {
 			for (size_type i = 0; i < other._size; i++)
-				this->A.construct(this->data + i, T(other.data[i]));
-//				ft::allocator_traits<allocator_type>::construct(this->A, this->data + i, T(other.data[i]));
+				this->A.construct(this->_data + i, T(other._data[i]));
+//				ft::allocator_traits<allocator_type>::construct(this->A, this->_data + i, T(other._data[i]));
 		}
 		~vector() {
 			this->clear();
-			this->A.deallocate(this->data, this->_capacity);
+			this->A.deallocate(this->_data, this->_capacity);
 		}
 		vector &operator=(const vector &other) {
-			this->A.deallocate(this->data, this->_capacity);
-			this->data = this->A.allocate(other._capacity);
+			this->A.deallocate(this->_data, this->_capacity);
+			this->_data = this->A.allocate(other._capacity);
 //			if (ft::allocator_traits<allocator_type>::propagate_on_container_copy_assignment::value)
 				this->A = other.A;
 			this->_capacity = other._capacity;
 			this->_size = other._size;
 			for (size_type i = 0; i < other._size; i++)
-				this->A.construct(this->data + i, T(other.data[i]));
-//				ft::allocator_traits<allocator_type>::construct(this->A, this->data + i, T(other.data[i]));
+				this->A.construct(this->_data + i, T(other._data[i]));
+//				ft::allocator_traits<allocator_type>::construct(this->A, this->_data + i, T(other._data[i]));
 			return (*this);
 		}
 
 		void assign(size_type count, const T &value) {
 			if (count > _capacity) {
-				this->A.deallocate(this->data, this->_capacity);
-				this->data = this->A.allocate(count);
+				this->A.deallocate(this->_data, this->_capacity);
+				this->_data = this->A.allocate(count);
 				this->_capacity = count;
 			}
 			this->_size = count;
 			for (size_type i = 0; i < count; i++)
-				this->A.construct(this->data + i, T(value));
-//				ft::allocator_traits<allocator_type>::construct(this->A, this->data + i, T(value));
+				this->A.construct(this->_data + i, T(value));
+//				ft::allocator_traits<allocator_type>::construct(this->A, this->_data + i, T(value));
 		}
 
 		template< class InputIt >
@@ -126,67 +126,77 @@ namespace ft {
 			size_type count = ft::distance(first, last);
 
 			if (count > _capacity) {
-				this->A.deallocate(this->data, this->_capacity);
-				this->data = this->A.allocate(count);
+				this->A.deallocate(this->_data, this->_capacity);
+				this->_data = this->A.allocate(count);
 				this->_capacity = count;
 			}
 			this->_size = count;
 			int j = 0;
 			for (InputIt i(first); i != last; i++)
-				this->A.construct(this->data + j++, *i);
-//				ft::allocator_traits<allocator_type>::construct(this->A, this->data + j++, *i);
+				this->A.construct(this->_data + j++, *i);
+//				ft::allocator_traits<allocator_type>::construct(this->A, this->_data + j++, *i);
 		}
 
 		allocator_type get_allocator() const { return allocator_type(this->A); }
 
 		reference at(size_type pos) {
 			range_check(pos);
-			return (this->data[pos]);
+			return (this->_data[pos]);
 		}
 
 		const_reference at(size_type pos) const {
 			range_check(pos);
-			return (this->data[pos]);
+			return (this->_data[pos]);
 		}
 
 		reference operator[](size_type pos) {
-			return (this->data[pos]);
+			return (this->_data[pos]);
 		}
 
 		const_reference operator[](size_type pos) const {
-			return (this->data[pos]);
+			return (this->_data[pos]);
 		}
 
 		reference front() {
-			return (this->data[0]);
+			return (this->_data[0]);
 		}
 
 		const_reference front() const {
-			return (this->data[0]);
+			return (this->_data[0]);
 		}
 
 		reference back() {
-			return (this->data[this->_size - 1]);
+			return (this->_data[this->_size - 1]);
 		}
 
 		const_reference back() const {
-			return (this->data[this->_size - 1]);
+			return (this->_data[this->_size - 1]);
+		}
+
+		T* data()
+		{
+			return (this->_data);
+		}
+
+		const T* data() const
+		{
+			return (this->_data);
 		}
 
 		iterator begin() {
-			return (iterator(this->data));
+			return (iterator(this->_data));
 		}
 
 		const_iterator begin() const {
-			return (const_iterator(this->data));
+			return (const_iterator(this->_data));
 		}
 
 		iterator end() {
-			return (iterator(this->data + _size ));
+			return (iterator(this->_data + _size ));
 		}
 
 		const_iterator end() const {
-			return (const_iterator(this->data + _size));
+			return (const_iterator(this->_data + _size));
 		}
 
 		reverse_iterator rbegin() {
@@ -225,11 +235,11 @@ namespace ft {
 				throw std::length_error("vector::reserve");
 			pointer tmp = A.allocate(new_cap);
 			for (size_type i = 0; i < this->_size; i++)
-				this->A.construct(tmp + i, this->data[i]);
-//				ft::allocator_traits<allocator_type>::construct(this->A, tmp + i, this->data[i]);
-			A.deallocate(this->data, this->_capacity);
+				this->A.construct(tmp + i, this->_data[i]);
+//				ft::allocator_traits<allocator_type>::construct(this->A, tmp + i, this->_data[i]);
+			A.deallocate(this->_data, this->_capacity);
 			this->_capacity = new_cap;
-			this->data = tmp;
+			this->_data = tmp;
 		}
 
 		size_type capacity() const {
@@ -239,8 +249,15 @@ namespace ft {
 		iterator insert( iterator pos, const T& value ) {
 			size_type tmp = pos - this->begin();
 			if (this->_size + 1 > this->_capacity)
-				this->reserve(this->_size + 1);
-			pos = this->data + tmp;
+			{
+				try {
+					this->reserve(this->_size + 1);
+				}
+				catch (std::exception &e) {
+					return pos;
+				}
+			}
+			pos = this->_data + tmp;
 			for (iterator i = this->end(); i > pos; i--)
 				if (i < this->end())
 					i[0] = i[-1];
@@ -259,10 +276,18 @@ namespace ft {
 		void insert( iterator pos, size_type count, const T& value ) {
 			if (!count)
 				return;
+
 			size_type tmp = pos - this->begin();
 			if (this->_size + count > this->_capacity)
-				this->reserve(this->_size + count);
-			pos = this->data + tmp;
+			{
+				try {
+					this->reserve(this->_size + count);
+				}
+				catch (std::exception &e) {
+					return;
+				}
+			}
+			pos = this->_data + tmp;
 			for (iterator i = this->end() - 1; i >= pos; i--)
 				if (i + count < this->end())
 					i[count] = *i;
@@ -276,7 +301,13 @@ namespace ft {
 					this->A.construct(pos.operator->() + i - 1, T(value));
 //					ft::allocator_traits<allocator_type>::construct(this->A, pos.operator->() + i - 1, T(value));
 			this->_size += count;
-
+//			if (this->_size + count > this->_capacity)
+//			{
+//				T*	new_data =  this->A.allocate(this->size() + count)
+//				{
+//
+//				}
+//			}
 		}
 
 
@@ -287,8 +318,15 @@ namespace ft {
 				return;
 			size_type tmp = pos - this->begin();
 			if (this->_size + count > this->_capacity)
+			{
+				try {
 				this->reserve(this->_size + count);
-			pos = this->data + tmp;
+				}
+				catch (std::exception &e) {
+					return;
+				}
+			}
+			pos = this->_data + tmp;
 			for (iterator i = this->end() - 1; i >= pos; i--)
 				if (i + count < this->end())
 					i[count] = *i;
@@ -312,8 +350,8 @@ namespace ft {
 		void resize( size_type count, T value = T() ) {
 			if (count < this->_size) {
 				for (size_type i = count; i < this->size(); i++)
-					this->A.destroy(this->data + i - 1);
-//					ft::allocator_traits<allocator_type>::destroy(this->A, this->data + i - 1);
+					this->A.destroy(this->_data + i - 1);
+//					ft::allocator_traits<allocator_type>::destroy(this->A, this->_data + i - 1);
 				this->_size = count;
 			}
 			else if (count > this->_size)
@@ -321,16 +359,16 @@ namespace ft {
 				if (count > _capacity)
 					this->reserve(count);
 				for (size_type j = _size; j < (long int)count; j++)
-					this->A.construct(this->data + j, value);
-//					ft::allocator_traits<allocator_type>::construct(this->A, this->data + j, value);
+					this->A.construct(this->_data + j, value);
+//					ft::allocator_traits<allocator_type>::construct(this->A, this->_data + j, value);
 				this->_size = count;
 			}
 		}
 
 		void clear() {
 			for (size_type i = 0; i < this->size(); i++)
-				this->A.destroy(this->data + i);
-//				ft::allocator_traits<allocator_type>::destroy(this->A, this->data + i);
+				this->A.destroy(this->_data + i);
+//				ft::allocator_traits<allocator_type>::destroy(this->A, this->_data + i);
 			this->_size = 0;
 		}
 
@@ -364,15 +402,15 @@ namespace ft {
 		void push_back(const T &value) {
 			if (this->_size == this->_capacity)
 				this->reserve(this->_capacity == 0 ? 1 : this->_capacity * 2);
-			this->A.construct(this->data + this->_size, value);
-//			ft::allocator_traits<allocator_type>::construct(this->A, this->data + this->_size, value);
+			this->A.construct(this->_data + this->_size, value);
+//			ft::allocator_traits<allocator_type>::construct(this->A, this->_data + this->_size, value);
 			this->_size++;
 		}
 
 		void pop_back() {
 			this->_size--;
-			this->A.destroy(this->data + this->_size);
-//			ft::allocator_traits<allocator_type>::destroy(this->A, this->data + this->_size);
+			this->A.destroy(this->_data + this->_size);
+//			ft::allocator_traits<allocator_type>::destroy(this->A, this->_data + this->_size);
 		}
 
 		void swap(vector &other) {
@@ -381,9 +419,9 @@ namespace ft {
 			allocator_type swap_alloc = this->A;
 			this->A = other.A;
 			other.A = swap_alloc;
-			pointer tmpdata = this->data;
-			this->data = other.data;
-			other.data = tmpdata;
+			pointer tmpdata = this->_data;
+			this->_data = other._data;
+			other._data = tmpdata;
 			int tmpsize = this->_size;
 			this->_size = other._size;
 			other._size = tmpsize;
