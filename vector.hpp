@@ -97,10 +97,11 @@ namespace ft {
 			this->A.deallocate(this->_data, this->_capacity);
 		}
 		vector &operator=(const vector &other) {
+			this->clear();
 			this->A.deallocate(this->_data, this->_capacity);
+			this->A = other.A;
 			this->_data = this->A.allocate(other._capacity);
 //			if (ft::allocator_traits<allocator_type>::propagate_on_container_copy_assignment::value)
-				this->A = other.A;
 			this->_capacity = other._capacity;
 			this->_size = other._size;
 			for (size_type i = 0; i < other._size; i++)
@@ -276,8 +277,8 @@ namespace ft {
 		void insert( iterator pos, size_type count, const T& value ) {
 			if (!count)
 				return;
-
 			size_type tmp = pos - this->begin();
+
 			if (this->_size + count > this->_capacity)
 			{
 				try {
@@ -301,11 +302,27 @@ namespace ft {
 					this->A.construct(pos.operator->() + i - 1, T(value));
 //					ft::allocator_traits<allocator_type>::construct(this->A, pos.operator->() + i - 1, T(value));
 			this->_size += count;
-//			if (this->_size + count > this->_capacity)
-//			{
-//				T*	new_data =  this->A.allocate(this->size() + count)
+//			size_type tmp = pos - this->begin();
+//			if (this->_size + count > this->_capacity) {
+//				T *new_data = this->A.allocate(this->size() + count);
+//				for (int i = 0; i < _size + count; i++)
 //				{
-//
+//					if (i < tmp)
+//						this->A.construct(new_data + i, _data[i]);
+//					else if (i > tmp + count)
+//						this->A.construct(new_data + i, _data[i - count]);
+//					else
+//						this->A.construct(new_data + i, value);
+//				}
+//			}
+//			else
+//			{
+//				for (int i = _size + count - 1; i >= tmp + count; i--)
+//				{
+//					if (i > tmp + count)
+//						_data[i] = _data[i - count];
+//					else
+//						_data[i] = value;
 //				}
 //			}
 		}
@@ -374,7 +391,7 @@ namespace ft {
 
 		iterator erase(iterator pos) {
 			iterator ret = pos;
-			this->A.destroy(pos.operator->());
+//			this->A.destroy(_data + _size - 1);
 //			ft::allocator_traits<allocator_type>::destroy(this->A, pos.operator->());
 			while (pos + 1 != this->end())
 			{

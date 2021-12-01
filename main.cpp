@@ -98,6 +98,15 @@ void test_ninsert(int n, T &v)
 		v.insert(v.begin(), n);
 }
 
+
+template <class T>
+void test_nerase(int n, T &v)
+{
+	timer<true> t;
+	while (--n >= 0)
+		v.erase(v.begin() + std::rand() % v.size());
+}
+
 class foo {
 public:
 
@@ -110,6 +119,7 @@ public:
 	foo &operator=(foo const &)
 	{
 		std::cout << "assign " << this << std::endl;
+		return (*this);
 	}
 };
 
@@ -117,37 +127,44 @@ int main() {
 	ft::map<int, int> m;
 	int tmp;
 
+//		test_vector();
+
+	/*
 //	test_erase();
 //	return 0;
-	std::vector<int> vstd;
-	ft::vector<int> vft;
+	std::vector<int> vstd( );
+	ft::vector<int> vft( );
 //	foo a = foo();
-	std::vector<foo> vfoo;
-	vfoo.insert(vfoo.begin(), foo());
+//	std::vector<foo> vfoo;
 //	vfoo.insert(vfoo.begin(), foo());
 //	vfoo.insert(vfoo.begin(), foo());
-	for (int n = 1; n <= 100000; n *= 10)
+//	vfoo.insert(vfoo.begin(), foo());
+//	for (int n = 10000; n > 1000; n /= 10)
+	for (int n = 1; n <= 10000; n *= 10)
 	{
+//		std::srand(1);
 		std::cout << "std " << n << std::endl;
 		test_ninsert(n, vstd);
+//		test_nerase(n, vstd);
 		std::cout << " us" <<  std::endl;
+//		std::srand(1);
 		std::cout << "ft " << n << std::endl;
 		test_ninsert(n, vft);
+//		test_nerase(n, vft);
 		std::cout << " us" <<  std::endl;
 
 	}
-//	test_vector();
-/*
+*/
 
 	struct timeval time;
 	gettimeofday(&time, NULL);
 	std::srand(time.tv_usec + (long int)1e6 * time.tv_sec);
 	for (int i = 0; i < 50; i++)
 	{
-//		tmp = std::rand() % 100;
+		tmp = std::rand() % 100;
 //		m.print();
-//		m.insert(ft::make_pair<int, int>(tmp, tmp));
-		m.insert(ft::make_pair<int, int>(i, i));
+		m.insert(ft::make_pair<int, int>(tmp, tmp));
+//		m.insert(ft::make_pair<int, int>(i, i));
 //		std::cout << tmp << ", ";
 	}
 	m.print();
