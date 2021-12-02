@@ -111,6 +111,7 @@ namespace ft {
 		}
 
 		void assign(size_type count, const T &value) {
+			this->clear();
 			if (count > _capacity) {
 				this->A.deallocate(this->_data, this->_capacity);
 				this->_data = this->A.allocate(count);
@@ -125,7 +126,7 @@ namespace ft {
 		template< class InputIt >
 		void assign( InputIt first, typename ft::enable_if<!ft::is_integral<InputIt>::value, InputIt>::type last ) {
 			size_type count = ft::distance(first, last);
-
+			this->clear();
 			if (count > _capacity) {
 				this->A.deallocate(this->_data, this->_capacity);
 				this->_data = this->A.allocate(count);
@@ -230,15 +231,18 @@ namespace ft {
 		}
 
 		void reserve(size_type new_cap) {
-			if (new_cap <= this->_size)
+			if (new_cap <= this->_capacity)
 				return;
 			if (new_cap > this->max_size())
 				throw std::length_error("vector::reserve");
 			pointer tmp = A.allocate(new_cap);
 			for (size_type i = 0; i < this->_size; i++)
+			{
 				this->A.construct(tmp + i, this->_data[i]);
 //				ft::allocator_traits<allocator_type>::construct(this->A, tmp + i, this->_data[i]);
-			A.deallocate(this->_data, this->_capacity);
+				this->A.destroy(this->_data + i);
+			}
+			this->A.deallocate(this->_data, this->_capacity);
 			this->_capacity = new_cap;
 			this->_data = tmp;
 		}
@@ -266,7 +270,11 @@ namespace ft {
 					this->A.construct(i.operator->(), T(i[-1]));
 //					ft::allocator_traits<allocator_type>::construct(this->A, i.operator->(), T(i[-1]));
 			if (pos < this->end())
+			{
+				(void)*(pos);
+				(void)T(value);
 				*(pos) = T(value);
+			}
 			else
 				this->A.construct(pos.operator->(), T(value));
 //				ft::allocator_traits<allocator_type>::construct(this->A, pos.operator->(), T(value));
@@ -366,24 +374,31 @@ namespace ft {
 
 		void resize( size_type count, T value = T() ) {
 			if (count < this->_size) {
-				for (size_type i = count; i < this->size(); i++)
-					this->A.destroy(this->_data + i - 1);
-//					ft::allocator_traits<allocator_type>::destroy(this->A, this->_data + i - 1);
+				for (size_type i = count; i < this->_size; i++)
+					this->A.destroy(this->_data + i);
+//					ft::allocator_traits<allocator_type>::destroy(this->A, this->_data + i);
 				this->_size = count;
 			}
 			else if (count > this->_size)
 			{
 				if (count > _capacity)
 					this->reserve(count);
-				for (size_type j = _size; j < (long int)count; j++)
-					this->A.construct(this->_data + j, value);
+				for (size_type j = _size; j < count; j++)
+					this->A.construct(this->_data + j, T(value));
 //					ft::allocator_traits<allocator_type>::construct(this->A, this->_data + j, value);
 				this->_size = count;
 			}
 		}
 
-		void clear() {
-			for (size_type i = 0; i < this->size(); i++)
+		void
+		clear() {
+//			while (this->_size > 0)
+//			{
+//				this->A.destroy(this->_data + this->_size - 1);
+//				--this->_size;
+//			}
+//			this->_size--;
+			for (size_type i = 0; i < this->_size; i++)
 				this->A.destroy(this->_data + i);
 //				ft::allocator_traits<allocator_type>::destroy(this->A, this->_data + i);
 			this->_size = 0;
@@ -393,27 +408,33 @@ namespace ft {
 			iterator ret = pos;
 //			this->A.destroy(_data + _size - 1);
 //			ft::allocator_traits<allocator_type>::destroy(this->A, pos.operator->());
-			while (pos + 1 != this->end())
+			while (pos + 1 < this->end())
 			{
 				pos[0] = pos[1];
 				pos++;
 			}
+			this->A.destroy(_data + _size - 1);
 			this->_size--;
 			return (ret);
 		}
 
 		iterator erase( iterator first, iterator last ) {
 			iterator ret = first;
-			for (iterator i = first; i != last; i++)
-				this->A.destroy(i.operator->());
-//				ft::allocator_traits<allocator_type>::destroy(this->A, i.operator->());
+			int	distance = last - first;
 			while (last != this->end())
 			{
 				*first = *last;
 				last++;
 				first++;
 			}
-			this->_size -= last - first;
+//			for (iterator i = first; i != last; i++)
+			while (first != this->end())
+			{
+				this->A.destroy(first.operator->());
+//				ft::allocator_traits<allocator_type>::destroy(this->A, first.operator->());
+				++first;
+			}
+			this->_size -= distance;
 			return (ret);
 		}
 		void push_back(const T &value) {

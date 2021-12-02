@@ -18,5 +18,5 @@ add_executable(ft_containers
         distance.hpp vector_iterator.hpp
         shitty_allocator.hpp
         main.cpp
-        test/test_vector.cpp
+        test/test_vector.hpp
         )

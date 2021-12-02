@@ -4,28 +4,35 @@
 #include <set>
 #include <cstdlib>
 #include <string>
+#include <climits>
 
-#ifndef NAMESPACE
-#define NAMESPACE ft
-#endif
-#ifndef TYPE
-#define TYPE std::string
-#endif
-#ifndef DEFAULTVAL
-TYPE default_val[] = {"zbeub", "", "zbib", "coucou", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"};
-#endif
 
-TYPE	get_value()
+template <typename T>
+T			get_value()
 {
-	return (TYPE(default_val[std::rand() % (sizeof(default_val) / sizeof(TYPE))]));
+	return (T());
 }
 
-void	print_full_vect(const NAMESPACE::vector<TYPE> &v)
+template <>
+std::string	get_value<std::string>()
+{
+	std::string default_val[] = {"zbeub", "", "zbib", "coucou", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"};
+	return (std::string(default_val[std::rand() % 5]));
+}
+
+template <>
+int			get_value<int>()
+{
+	return (int(std::rand() % UINT_MAX));
+}
+
+template<class C>
+void	print_full_vect(const C &v)
 {
 	std::cout << "empty: " << v.empty() << std::endl;
 	std::cout << "size: " << v.size() << std::endl;
-	std::cout << "capacity: " << v.capacity() << std::endl;
-	std::cout << "max_size: " << v.max_size() << std::endl;
+//	std::cout << "capacity: " << v.capacity() << std::endl;
+//	std::cout << "max_size: " << v.max_size() << std::endl;
 	if (!v.empty()) {
 		std::cout << "front: " << v.front() << std::endl;
 		std::cout << "back: " << v.back() << std::endl;
@@ -33,28 +40,30 @@ void	print_full_vect(const NAMESPACE::vector<TYPE> &v)
 		std::cout << *v.data() << std::endl;
 	}
 	std::cout << "content:" << std::endl;
-	for (NAMESPACE::vector<TYPE>::const_iterator i = v.begin(); i != v.end(); i++)
+	for (typename C::const_iterator i = v.begin(); i != v.end(); i++)
 		std::cout << " " << *i << std::endl;
 	std::cout << "reverse content:" << std::endl;
-	for (NAMESPACE::vector<TYPE>::const_reverse_iterator i = v.rbegin(); i != v.rend(); i++)
+	for (typename C::const_reverse_iterator i = v.rbegin(); i != v.rend(); i++)
 		std::cout << " " << *i << std::endl;
 }
 
-void	test_clear(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2)
+template<class C>
+void	test_clear(C &v1, C &v2)
 {
 	std::cout << "test_clear:" << std::endl;
-	NAMESPACE::vector<TYPE> v3(v1);
+	C v3(v1);
 	print_full_vect(v1);
 	v1.clear();
 	print_full_vect(v3);
 	v3.clear();
 }
 
-void	test_copy_construct_equal(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2)
+template<class C>
+void	test_copy_construct_equal(C &v1, C &v2)
 {
 	std::cout << "test_copy_construct_equal:" << std::endl;
 
-	NAMESPACE::vector<TYPE> v3(v1);
+	C v3(v1);
 	print_full_vect(v1);
 	print_full_vect(v2);
 	print_full_vect(v3);
@@ -65,34 +74,40 @@ void	test_copy_construct_equal(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TY
 	v1 = v3;
 	v1 = v2;
 	v2 = v3;
-	v3 = NAMESPACE::vector<TYPE>(v3);
+	v3 = C(v3);
 	print_full_vect(v1);
 	print_full_vect(v2);
 	print_full_vect(v3);
-	v3 = NAMESPACE::vector<TYPE>(v1);
+	v3 = C(v1);
 }
 
-void	test_construct(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2)
+template<class C>
+void	test_construct(C &v1, C &v2)
 {
-	std::cout << "test_construct:" << std::endl;
-
-	NAMESPACE::vector<TYPE> v4 = NAMESPACE::vector<TYPE>(std::rand() % 20, get_value());
-	const std::set<TYPE> s(v1.begin(), v1.end());
-	const NAMESPACE::vector<TYPE> v3 = NAMESPACE::vector<TYPE>(s.begin(), s.end());
-	v1 = NAMESPACE::vector<TYPE>(v3);
-	print_full_vect(v1);
-	print_full_vect(v2);
-	print_full_vect(v3);
-	v1.insert(v1.end(), v4.begin(), v4.end());
+	switch (std::rand() % 10)
+	{
+		case 0:
+			std::cout << "test_construct:" << std::endl;\
+			v1 = C(std::rand() % 20, get_value<typename C::value_type>());
+			print_full_vect(v1);
+			break;
+		case 1:
+			std::cout << "test_construct:" << std::endl;
+			const std::set<typename C::value_type> s(v1.begin(), v1.end());
+			v1 = C(s.begin(), s.end());
+			print_full_vect(v1);
+			break;
+	}
 }
 
-void 	test_assign(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2)
+template<class C>
+void 	test_assign(C &v1, C &v2)
 {
 	std::cout << "test_assign:" << std::endl;
 
-	NAMESPACE::vector<TYPE> v3;
+	C v3;
 
-	v3.assign(12, get_value());
+	v3.assign(12, get_value<typename C::value_type>());
 	print_full_vect(v1);
 	print_full_vect(v2);
 	print_full_vect(v3);
@@ -102,7 +117,8 @@ void 	test_assign(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2)
 	print_full_vect(v3);
 }
 
-void	test_at(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2)
+template<class C>
+void	test_at(C &v1, C &v2)
 {
 	std::cout << "test_at:" << std::endl;
 
@@ -110,7 +126,7 @@ void	test_at(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2)
 	{
 		try {
 			if (!v1.empty())
-				v1.at((int)std::rand() % v1.size()) = get_value();
+				v1.at((int)std::rand() % v1.size()) = get_value<typename C::value_type>();
 			if (!v2.empty())
 				std::cout << v2.at((int)std::rand() % v2.size()) << std::endl;
 			std::cout << v1.at((unsigned int)std::rand());
@@ -125,14 +141,15 @@ void	test_at(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2)
 	print_full_vect(v2);
 }
 
-void	test_operator_index(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2)
+template<class C>
+void	test_operator_index(C &v1, C &v2)
 {
 	std::cout << "test_operator_index:" << std::endl;
 
 	for (int i = 0; i < 5; i++)
 	{
 		if (!v1.empty())
-			v1.at((int)std::rand() % v1.size()) = get_value();
+			v1.at((int)std::rand() % v1.size()) = get_value<typename C::value_type>();
 		if (!v2.empty())
 			std::cout << v2.at((int)std::rand() % v2.size()) << std::endl;
 	}
@@ -140,11 +157,12 @@ void	test_operator_index(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v
 	print_full_vect(v2);
 }
 
-void	test_insert(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2)
+template<class C>
+void	test_insert(C &v1, C &v2)
 {
 	for (int i = 0; i < 5; i++)
 	{
-		NAMESPACE::vector<TYPE>::iterator it;
+		typename C::iterator it;
 		if (!v1.empty())
 			it = v1.begin() + (std::rand() % v1.size());
 		else
@@ -152,7 +170,7 @@ void	test_insert(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2)
 		try {
 			switch (std::rand() % 3) {
 				case (0):
-					std::cout << *v1.insert(it, get_value()) << std::endl;
+					std::cout << *v1.insert(it, get_value<typename C::value_type>()) << std::endl;
 					break;
 				case (1):
 					if (!v1.empty() && !v2.empty())
@@ -166,9 +184,9 @@ void	test_insert(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2)
 					break;
 				case (2):
 					if (!v2.empty())
-						v2.insert(v2.begin() + (std::rand() % v2.size()), std::rand() % 5, get_value());
+						v2.insert(v2.begin() + (std::rand() % v2.size()), std::rand() % 5, get_value<typename C::value_type>());
 					else
-						v2.insert(v2.begin(), std::rand() % 5, get_value());
+						v2.insert(v2.begin(), std::rand() % 5, get_value<typename C::value_type>());
 			}
 		}
 		catch (std::exception &e)
@@ -179,13 +197,18 @@ void	test_insert(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2)
 	print_full_vect(v1);
 }
 
-void	test_erase(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2) {
+template<class C>
+void	test_erase(C &v1, C &v2) {
+	typename C::iterator ret;
 	for (int i = 0; i < 5; i++) {
-		NAMESPACE::vector<TYPE>::iterator it2 = v2.begin() + (v2.empty() ? 0 : (std::rand() % v2.size()));
+		typename C::iterator it2 = v2.begin() + (v2.empty() ? 0 : (std::rand() % v2.size()));
 		switch (std::rand() % 3) {
 			case (0):
-				if (!v1.empty())
-				std::cout << *v1.erase(v1.begin() + (std::rand() % v1.size())) << std::endl;
+				if (!v1.empty()) {
+					ret = v1.erase(v1.begin() + (std::rand() % v1.size()));
+					if (ret < v1.end())
+						std::cout << *ret << std::endl;
+				}
 				break;
 			case (2):
 				if (!v2.empty())
@@ -198,28 +221,34 @@ void	test_erase(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2) {
 	}
 }
 
-void	test_push_back(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2) {
-	v1.push_back(get_value());
+template<class C>
+void	test_push_back(C &v1, C &v2) {
+	v1.push_back(get_value<typename C::value_type>());
 }
 
-void	test_pop_back(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2) {
+template<class C>
+void	test_pop_back(C &v1, C &v2) {
 	if (!v1.empty())
 		v1.pop_back();
 }
 
-void	test_resize(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2) {
-	v1.resize(std::rand() % (v1.empty() ? 10 : (2 * v1.size())), get_value());
+template<class C>
+void	test_resize(C &v1, C &v2) {
+	v1.resize(std::rand() % (v1.empty() ? 10 : (2 * v1.size())), get_value<typename C::value_type>());
 }
 
-void	test_swap(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2) {
+template<class C>
+void	test_swap(C &v1, C &v2) {
 	v1.swap(v2);
 }
 
-void	test_stdswap(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2) {
+template<class C>
+void	test_stdswap(C &v1, C &v2) {
 	std::swap(v1, v2);
 }
 
-void	test_comparison(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2)
+template<class C>
+void	test_comparison(C &v1, C &v2)
 {
 	std::cout << "v1 < v2" << (v1 < v2) << std::endl;
 	std::cout << "v1 > v2" << (v1 > v2) << std::endl;
@@ -230,10 +259,10 @@ void	test_comparison(NAMESPACE::vector<TYPE> &v1, NAMESPACE::vector<TYPE> &v2)
 }
 
 
-
+template <class C>
 void	test_vector()
 {
-	void (*array[])(NAMESPACE::vector<TYPE> &, NAMESPACE::vector<TYPE> &) = {
+	void (*array[])(C &, C &) = {
 			&test_assign,
 			&test_construct,
 			&test_copy_construct_equal,
@@ -242,21 +271,21 @@ void	test_vector()
 			&test_clear,
 			&test_insert,
 			&test_erase,
-//			&test_pop_back,
-//			&test_push_back,
-//			&test_resize,
-//			&test_swap,
-//			&test_stdswap,
-//			&test_comparison
+			&test_pop_back,
+			&test_push_back,
+			&test_resize,
+			&test_swap,
+			&test_stdswap,
+			&test_comparison
 	};
-	NAMESPACE::vector<TYPE> v1;
-	NAMESPACE::vector<TYPE> v2;
+	C v1;
+	C v2;
 	print_full_vect(v1);
 	v1.clear();
 	print_full_vect(v1);
-	for (int i = 0; i < 100; i++)
+	for (int i = 0; i < 1000; i++)
 	{
-		int rand = std::rand() % sizeof(array) / sizeof (void (*)(NAMESPACE::vector<TYPE> &, NAMESPACE::vector<TYPE> &));
+		int rand = std::rand() % sizeof(array) / sizeof (void (*)(C &, C &));
 		if (std::rand() % 2)
 			array[rand](v1, v2);
 		else

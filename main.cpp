@@ -88,7 +88,7 @@ int	test_erase()
 	str2 += "}";
 
 }
-void	test_vector();
+
 
 template <class T>
 void test_ninsert(int n, T &v)
@@ -123,11 +123,13 @@ public:
 	}
 };
 
-int main() {
-	ft::map<int, int> m;
-	int tmp;
+#include "test/test_vector.hpp"
 
-//		test_vector();
+int main() {
+//	ft::map<int, int> m;
+//	int tmp;
+
+		test_vector<ft::vector<std::string> >();
 
 	/*
 //	test_erase();
@@ -154,7 +156,7 @@ int main() {
 		std::cout << " us" <<  std::endl;
 
 	}
-*/
+
 
 	struct timeval time;
 	gettimeofday(&time, NULL);
