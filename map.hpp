@@ -239,20 +239,24 @@ namespace ft {
 //		map (const map& x) : A(std::allocator_traits<allocator_type>::select_on_container_copy_construction(x.A)), _past_the_end(value_type(), 0, 0, this->_size, NA), _comp(x._comp), _size(0), NA(std::allocator_traits<node_alloc>::select_on_container_copy_construction(x.NA)), first(NULL), last(NULL)
 		map (const map& x) : A(x.A), _past_the_end(value_type(), 0, 0, this->_size, NA), _comp(x._comp), _size(0), NA(x.NA), first(NULL), last(NULL)
 		{
-			node tmp_node(value_type(x.tree->value), x.tree->color, &_past_the_end, this->_size, this->NA);
-			tmp_node.l = x.tree->l;
-			tmp_node.r = x.tree->r;
-			this->tree = new_node(tmp_node);
-			tmp_node.l = NULL;
-			tmp_node.r = NULL;
-			for (node * i = this->tree; i; i = i->l)
-				this->first = i;
-			for (node * i = this->tree; i; i = i->r)
-				this->last = i;
-			_past_the_end.NA = &this->NA;
+			if (x.tree) {
+				node tmp_node(value_type(x.tree->value), x.tree->color, &_past_the_end, this->_size, this->NA);
+				tmp_node.l = x.tree->l;
+				tmp_node.r = x.tree->r;
+				this->tree = new_node(tmp_node);
+				tmp_node.l = NULL;
+				tmp_node.r = NULL;
+				for (node *i = this->tree; i; i = i->l)
+					this->first = i;
+				for (node *i = this->tree; i; i = i->r)
+					this->last = i;
+				_past_the_end.NA = &this->NA;
+				this->tree->p = &_past_the_end;
+			}
+			else
+				this->tree = NULL;
 			_past_the_end.l = this->tree;
 			_past_the_end.r = this->tree;
-			this->tree->p = &_past_the_end;
 		};
 		~map(){this->clear();}
 		map& operator= (const map& x) {
@@ -264,28 +268,30 @@ namespace ft {
 //			if (std::allocator_traits<allocator_type>::propagate_on_container_copy_assignment::value)
 //				this->A = std::allocator_traits<allocator_type>::select_on_container_copy_construction(x.A);
 				this->A = x.A;
-			node tmp_node(value_type(x.tree->value), x.tree->color, &_past_the_end, this->_size, NA);
-			tmp_node.l = x.tree->l;
-			tmp_node.r = x.tree->r;
-			this->tree = new_node(tmp_node);
-			tmp_node.l = NULL;
-			tmp_node.r = NULL;
-			for (node * i = this->tree; i; i = i->l)
-				this->first = i;
-			for (node * i = this->tree; i; i = i->r)
-				this->last = i;
+				if (x.tree) {
+					node tmp_node(value_type(x.tree->value), x.tree->color, &_past_the_end, this->_size, NA);
+					tmp_node.l = x.tree->l;
+					tmp_node.r = x.tree->r;
+					this->tree = new_node(tmp_node);
+					tmp_node.l = NULL;
+					tmp_node.r = NULL;
+					for (node *i = this->tree; i; i = i->l)
+						this->first = i;
+					for (node *i = this->tree; i; i = i->r)
+						this->last = i;
+					this->tree->p = &_past_the_end;
+				}
 			_past_the_end.l = this->tree;
 			_past_the_end.r = this->tree;
-			this->tree->p = &_past_the_end;
 			return (*this);
 		}
 		allocator_type get_allocator() const {return(this->A);};
 
 		T& at( const Key& key ) {
-			return (recursive_search(this->tree, key)->value.second);
+			return (recursive_search(this->tree, key)->second);
 		}
 		const T& at( const Key& key ) const {
-			return (recursive_search(this->tree, key)->value.second);
+			return (recursive_search(this->tree, key)->second);
 		}
 		T& operator[]( const Key& key ){
 			return (insert(ft::make_pair(key, T())).first->second);
@@ -522,11 +528,13 @@ namespace ft {
 
 			other._past_the_end.l = other.tree;
 			other._past_the_end.r = other.tree;
-			other.tree->p = &other._past_the_end;
+			if (other.tree)
+				other.tree->p = &other._past_the_end;
 
 			this->_past_the_end.l = this->tree;
 			this->_past_the_end.r = this->tree;
-			this->tree->p = &this->_past_the_end;
+			if (this->tree)
+				this->tree->p = &this->_past_the_end;
 
 			node		*first_swap = this->first;
 			this->first = other.first;
@@ -622,6 +630,8 @@ namespace ft {
 		}
 		void 	invert_color(node *a)
 		{
+			if (!a)
+				return;
 			if (a)
 				a->color ^= 1;
 			if (a->r)
@@ -631,6 +641,8 @@ namespace ft {
 		}
 		void	set_node(node *n, size_type *size, node_alloc * NA)
 		{
+			if (!n)
+				return;
 			if( n->l)
 				set_node(n->l, size, NA);
 			if( n->r)

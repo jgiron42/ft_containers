@@ -26,7 +26,7 @@ int			get_value<int>()
 	return (int(std::rand() % UINT_MAX));
 }
 
-template<class C>
+template <class C>
 void	print_full_vect(const C &v)
 {
 	std::cout << "empty: " << v.empty() << std::endl;
@@ -149,9 +149,9 @@ void	test_operator_index(C &v1, C &v2)
 	for (int i = 0; i < 5; i++)
 	{
 		if (!v1.empty())
-			v1.at((int)std::rand() % v1.size()) = get_value<typename C::value_type>();
+			v1[(int)std::rand() % v1.size()] = get_value<typename C::value_type>();
 		if (!v2.empty())
-			std::cout << v2.at((int)std::rand() % v2.size()) << std::endl;
+			std::cout << v2.at[(int)std::rand() % v2.size()] << std::endl;
 	}
 	print_full_vect(v1);
 	print_full_vect(v2);

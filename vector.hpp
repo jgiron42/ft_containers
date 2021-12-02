@@ -392,15 +392,12 @@ namespace ft {
 
 		void
 		clear() {
-//			while (this->_size > 0)
-//			{
-//				this->A.destroy(this->_data + this->_size - 1);
-//				--this->_size;
-//			}
-//			this->_size--;
-			for (size_type i = 0; i < this->_size; i++)
-				this->A.destroy(this->_data + i);
-//				ft::allocator_traits<allocator_type>::destroy(this->A, this->_data + i);
+			while (this->_size > 0)
+			{
+				this->A.destroy(this->_data + this->_size - 1);
+				//				this->A.destroy(this->_data + this->_size - 1);
+				--this->_size;
+			}
 			this->_size = 0;
 		}
 

@@ -24,16 +24,16 @@
 std::map<int,int> fill_std(std::vector<int> v)
 {
 	std::map<int,int> ret;
-	for (auto i : v)
-		ret.insert(std::make_pair(i, i));
+	for (std::vector<int>::iterator i = v.begin(); i != v.end(); ++i)
+		ret.insert(std::make_pair(*i, *i));
 	return (ret);
 }
 
 ft::map<int,int> fill_ft(std::vector<int> v)
 {
 	ft::map<int,int> ret;
-	for (auto i : v)
-		ret.insert(ft::make_pair(i, i));
+	for (std::vector<int>::iterator i = v.begin(); i != v.end(); ++i)
+		ret.insert(ft::make_pair(*i, *i));
 	return (ret);
 }
 
@@ -74,8 +74,8 @@ int	test_erase()
 			str2 += ", ";
 
 		bool is_equal = true;
-		auto i1 = mft.begin();
-		auto i2 = mstd.begin();
+		ft::map<int,int>::iterator i1 = mft.begin();
+		std::map<int,int>::iterator i2 = mstd.begin();
 		while (i1 != mft.end() && i2 != mstd.end())
 		{
 			is_equal &= (i1->first == i2->first);
@@ -86,7 +86,7 @@ int	test_erase()
 		std::cout << (is_equal ? "OK" : "KO") << std::endl;
 	}
 	str2 += "}";
-
+	return (1);
 }
 
 
@@ -124,12 +124,25 @@ public:
 };
 
 #include "test/test_vector.hpp"
+#include "test/test_map.hpp"
 
 int main() {
 //	ft::map<int, int> m;
 //	int tmp;
 
-		test_vector<ft::vector<std::string> >();
+//	ft::vector<int> vft(11111, 1);
+//	std::vector<int> vstd(11111, 1);
+//
+//	for (int i = 10000; i >= 1; i /= 10)
+//	{
+//		std::cout << std::endl << "ft: " << std::endl;
+//		test_nerase(i, vft);
+//		std::cout << std::endl << "std: " << std::endl;
+//		test_nerase(i, vstd);
+//	}
+
+	test_map<ft::map<std::string,std::string>, ft::pair >(0);
+//		test_vector<ft::vector<std::string> >();
 
 	/*
 //	test_erase();
