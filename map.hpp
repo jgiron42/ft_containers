@@ -157,7 +157,10 @@ namespace ft {
 				return(iteratorT<const U>(this->pos));
 			}
 			pointer operator->() const {return (&(this->pos->value));}
-			reference operator*() const {return (this->pos->value);}
+			reference operator*() const {
+				std::cout << "zbeub" << std::endl;
+
+				return (this->pos->value);}
 			iteratorT &operator++() {return (increment(this->pos, NULL));}
 			iteratorT &operator--() {return (decrement(this->pos, NULL));}
 			iteratorT operator++(int) {
@@ -254,7 +257,11 @@ namespace ft {
 				this->tree->p = &_past_the_end;
 			}
 			else
+			{
+				this->first = NULL;
+				this->last = NULL;
 				this->tree = NULL;
+			}
 			_past_the_end.l = this->tree;
 			_past_the_end.r = this->tree;
 		};
@@ -281,6 +288,12 @@ namespace ft {
 						this->last = i;
 					this->tree->p = &_past_the_end;
 				}
+				else
+				{
+					this->first = NULL;
+					this->last = NULL;
+					this->tree = NULL;
+				}
 			_past_the_end.l = this->tree;
 			_past_the_end.r = this->tree;
 			return (*this);
@@ -288,10 +301,16 @@ namespace ft {
 		allocator_type get_allocator() const {return(this->A);};
 
 		T& at( const Key& key ) {
-			return (recursive_search(this->tree, key)->second);
+			iterator ret = recursive_search(this->tree, key);
+			if (ret != this->end())
+				return (ret->second);
+			throw std::out_of_range("map::at");
 		}
 		const T& at( const Key& key ) const {
-			return (recursive_search(this->tree, key)->second);
+			iterator ret = recursive_search(this->tree, key);
+			if (ret != this->end())
+				return (ret->second);
+			throw std::out_of_range("map::at");
 		}
 		T& operator[]( const Key& key ){
 			return (insert(ft::make_pair(key, T())).first->second);
@@ -306,7 +325,8 @@ namespace ft {
 		reverse_iterator rend() {return (reverse_iterator(this->begin()));}
 		const_reverse_iterator rend() const{return (const_reverse_iterator(this->begin()));}
 
-		bool empty() const {return (!this->_size);}
+		bool empty() const {
+			return (!this->_size);}
 		size_type size() const {return (this->_size);}
 //		size_type max_size() const {return(std::allocator_traits<allocator_type>::max_size(this->NA));}
 		size_type max_size() const {return(this->NA.max_size());}
@@ -574,11 +594,19 @@ namespace ft {
 		}
 
 		iterator upper_bound( const Key& key ) {
-			return (recursive_upper_bound(this->tree, key, (node *)&this->_past_the_end));
+			iterator ret(recursive_lower_bound(this->tree, key, (node *)&this->_past_the_end));
+
+			if (!this->_comp(ret->first, key) && !this->_comp(key, ret->first))
+				return (++ret);
+			return (ret);
 		}
 
 		const_iterator upper_bound( const Key& key ) const {
-			return (recursive_upper_bound(this->tree, key, (node *)&this->_past_the_end));
+			iterator ret(recursive_lower_bound(this->tree, key, (node *)&this->_past_the_end));
+
+			if (!compare(ret->first, key) && !compare(key, ret->first))
+				return (++ret);
+			return (ret);
 		}
 		key_compare key_comp() const {
 			return(this->_comp);

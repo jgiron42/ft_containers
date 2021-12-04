@@ -7,7 +7,7 @@
 #include "test/test_map.hpp"
 #include "test/test_vector.hpp"
 #ifndef NAMESPACE
-# define NAMESPACE ft
+# define NAMESPACE std
 # define ZBOUB "ft"
 #endif
 
