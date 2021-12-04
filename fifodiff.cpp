@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 	char buf1[BUFFER_SIZE + 1];
 	char buf2[BUFFER_SIZE + 1];
 	int fd1, fd2;
-	int ret1, ret2;
+	int ret1 = 1, ret2 = 1;
 	std::deque<char> d1, d2;
 	int			pos = 0;
 
@@ -38,15 +38,21 @@ int main(int argc, char **argv)
 			perror("open");
 			return (1);
 		}
-		while ( (ret1 = read(fd1, buf1, BUFFER_SIZE)) >= 0 && errno != EAGAIN && (ret2 = read(fd2, buf2, BUFFER_SIZE)) >= 0 && errno != EAGAIN && !(!ret1 && !ret2 && stop))
+		while ( !(ret1 <= 0 && ret2 <= 0 && stop))
 		{
-			std::cout << ret1 << " " << ret2 << std::endl;
+			ret1 = read(fd1, buf1, BUFFER_SIZE);
+			ret2 = read(fd2, buf2, BUFFER_SIZE);
+//			std::cout << ret1 << " " << ret2 << std::endl;
 			for (int i = 0; i < ret1; i++)
 					d1.push_back(buf1[i]);
 			for (int i = 0; i < ret2; i++)
 					d2.push_back(buf2[i]);
 			while (!d2.empty() && !d1.empty()) {
 				if (d1.front() == d2.front()) {
+					if (d1.front() == 3) {
+						std::cout << "no diff detected" << std::endl;
+						return (0);
+					}
 					d1.pop_front();
 					d2.pop_front();
 					pos++;

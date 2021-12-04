@@ -174,6 +174,7 @@ namespace nstest_vector {
 									  get_value<typename C::value_type>());
 						else
 							v2.insert(v2.begin(), std::rand() % 5, get_value<typename C::value_type>());
+;
 				}
 			}
 			catch (std::exception &e) {

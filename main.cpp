@@ -4,6 +4,7 @@
 #include "vector.hpp"
 #include <map>
 #include <vector>
+#include <unistd.h>
 #include "test/test_map.hpp"
 #include "test/test_vector.hpp"
 #ifndef NAMESPACE
@@ -32,5 +33,9 @@ int main(int argc, char **argv)
 			std::cerr << "Invalid arguments" << std::endl;
 			return (1);
 		}
+		if (!isatty(1))
+		{
+			std::cout << (char)'\3' << std::endl;
+		}
 	}
-}
+} 

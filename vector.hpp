@@ -252,32 +252,37 @@ namespace ft {
 		}
 
 		iterator insert( iterator pos, const T& value ) {
+			size_type i = 0;
 			size_type tmp = pos - this->begin();
 			if (this->_size + 1 > this->_capacity)
 			{
-				try {
-					this->reserve(this->_size + 1);
-				}
-				catch (std::exception &e) {
-					return pos;
-				}
+				size_type new_cap = get_size(1);
+				pointer new_data = this->A.allocate(new_cap);
+				for (; i < tmp; i++)
+					this->A.construct(new_data + i, this->_data[i]);
+				this->A.construct(new_data + i, value);
+				++i;
+				for (; i <= this->_size; i++)
+					this->A.construct(new_data + i, this->_data[i - 1]);
+				size_type new_size = _size + 1;
+				this->clear();
+				this->A.deallocate(this->_data, this->_capacity);
+				this->_data = new_data;
+				this->_size = new_size;
+				this->_capacity = new_cap;
+				return (iterator(this->_data + tmp));
 			}
-			pos = this->_data + tmp;
-			for (iterator i = this->end(); i > pos; i--)
-				if (i < this->end())
-					i[0] = i[-1];
-				else
-					this->A.construct(i.operator->(), T(i[-1]));
-//					ft::allocator_traits<allocator_type>::construct(this->A, i.operator->(), T(i[-1]));
-			if (pos < this->end())
+			i = this->_size;
+			if (i != tmp)
 			{
-				(void)*(pos);
-				(void)T(value);
-				*(pos) = T(value);
+				this->A.construct(this->_data + i, this->_data[i - 1]);
+				--i;
+				for (; i > tmp; i--)
+					this->_data[i] = this->_data[i - 1];
+				this->_data[i] = value;
 			}
 			else
-				this->A.construct(pos.operator->(), T(value));
-//				ft::allocator_traits<allocator_type>::construct(this->A, pos.operator->(), T(value));
+				this->A.construct(this->_data + i, value);
 			this->_size++;
 			return (pos);
 		}
@@ -286,53 +291,46 @@ namespace ft {
 			if (!count)
 				return;
 			size_type tmp = pos - this->begin();
+			size_type i = 0;
 
 			if (this->_size + count > this->_capacity)
 			{
-				try {
-					this->reserve(this->_size + count);
+				size_type new_cap = get_size(count);
+				pointer new_data = this->A.allocate(new_cap);
+				for (; i < tmp; i++)
+					this->A.construct(new_data + i, this->_data[i]);
+				for (size_type j = 0; j < count; j++) {
+					this->A.construct(new_data + i, value);
+					++i;
 				}
-				catch (std::exception &e) {
-					return;
-				}
+				for (; i < this->_size + count; i++)
+					this->A.construct(new_data + i, this->_data[i - count]);
+				size_type new_size = _size + count;
+				this->clear();
+				this->A.deallocate(this->_data, this->_capacity);
+				this->_data = new_data;
+				this->_size = new_size;
+				this->_capacity = new_cap;
+				return;
 			}
-			pos = this->_data + tmp;
-			for (iterator i = this->end() - 1; i >= pos; i--)
-				if (i + count < this->end())
-					i[count] = *i;
+			i = this->_size + count;
+			while (i > tmp + count)
+			{
+				if (i > _size)
+					this->A.construct(this->_data + i - 1, this->_data[i - count - 1]);
 				else
-					this->A.construct(i.operator->() + count, T(*i));
-//					ft::allocator_traits<allocator_type>::construct(this->A, i.operator->() + count, T(*i));
-			for (size_type i = count; i > 0; i--)
-				if (pos.operator->() + i - 1 < this->end().operator->())
-					*(pos.operator->() + i - 1 ) = T(value);
+					this->_data[i - 1] = this->_data[i - count - 1];
+				--i;
+			}
+			while (i > tmp)
+			{
+				if (i > _size)
+					this->A.construct(this->_data + i - 1, value);
 				else
-					this->A.construct(pos.operator->() + i - 1, T(value));
-//					ft::allocator_traits<allocator_type>::construct(this->A, pos.operator->() + i - 1, T(value));
+					this->_data[i - 1] = value;
+				--i;
+			}
 			this->_size += count;
-//			size_type tmp = pos - this->begin();
-//			if (this->_size + count > this->_capacity) {
-//				T *new_data = this->A.allocate(this->size() + count);
-//				for (int i = 0; i < _size + count; i++)
-//				{
-//					if (i < tmp)
-//						this->A.construct(new_data + i, _data[i]);
-//					else if (i > tmp + count)
-//						this->A.construct(new_data + i, _data[i - count]);
-//					else
-//						this->A.construct(new_data + i, value);
-//				}
-//			}
-//			else
-//			{
-//				for (int i = _size + count - 1; i >= tmp + count; i--)
-//				{
-//					if (i > tmp + count)
-//						_data[i] = _data[i - count];
-//					else
-//						_data[i] = value;
-//				}
-//			}
 		}
 
 
@@ -485,6 +483,10 @@ namespace ft {
 		}
 
 	private:
+		size_type get_size(size_type wanted)
+		{
+			return (this->_size + wanted);
+		}
 		void range_check(size_type n) const {
 			if (n < 0)
 				throw std::out_of_range(SSTR("vector::range_check n (which is " << n << ") < 0"));

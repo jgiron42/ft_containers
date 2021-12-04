@@ -157,10 +157,7 @@ namespace ft {
 				return(iteratorT<const U>(this->pos));
 			}
 			pointer operator->() const {return (&(this->pos->value));}
-			reference operator*() const {
-				std::cout << "zbeub" << std::endl;
-
-				return (this->pos->value);}
+			reference operator*() const {return (this->pos->value);}
 			iteratorT &operator++() {return (increment(this->pos, NULL));}
 			iteratorT &operator--() {return (decrement(this->pos, NULL));}
 			iteratorT operator++(int) {
@@ -991,3 +988,6 @@ namespace std {
 }
 
 #endif
+ 
+ 
+ 

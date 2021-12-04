@@ -295,7 +295,7 @@ void	test_map(int seed) {
 		nstest_map::print_full_map<C, P>(m1);
 		m1.clear();
 		nstest_map::print_full_map<C, P>(m1);
-		for (int i = 0; 1 || i < 1000; i++) {
+		for (int i = 0;  i < 1000; i++) {
 			int rand = std::rand() % sizeof(array) / sizeof(void (*)(C &, C &));
 			if (std::rand() % 2)
 				array[rand](m1, m2);
