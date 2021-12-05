@@ -1,15 +1,17 @@
-#include "srcs/containers/map.hpp"
+#include "../srcs/containers/map.hpp"
+#include "../srcs/containers/vector.hpp"
+#include "../srcs/containers/stack.hpp"
 #include <string>
-#include "srcs/utils/pair.hpp"
-#include "srcs/containers/vector.hpp"
+#include "../srcs/utils/pair.hpp"
 #include <map>
 #include <vector>
+#include <stack>
 #include <unistd.h>
-#include "test/test_map.hpp"
-#include "test/test_vector.hpp"
+#include "test_map.hpp"
+#include "test_vector.hpp"
+#include "test_stack.hpp"
 #ifndef NAMESPACE
 # define NAMESPACE ft
-# define ZBOUB "ft"
 #endif
 
 int main(int argc, char **argv)
@@ -22,13 +24,11 @@ int main(int argc, char **argv)
 		if (argc == 3)
 			seed = atoi(argv[2]);
 		if (std::string(argv[1]) == std::string("vector"))
-		{
 			test_vector<NAMESPACE::vector<std::string> >(seed);
-		}
 		else if (std::string(argv[1]) == std::string("map"))
-		{
 			test_map<NAMESPACE::map<std::string, std::string>, NAMESPACE::pair>(seed);
-		}
+		else if (std::string(argv[1]) == std::string("stack"))
+			test_stack<NAMESPACE::stack<std::string> >(seed);
 		else
 		{
 			std::cerr << "Invalid arguments" << std::endl;

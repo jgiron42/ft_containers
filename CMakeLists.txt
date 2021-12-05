@@ -7,16 +7,16 @@ include_directories(.)
 set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
 set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
 add_executable(ft_containers
-        iterators_traits.hpp
-        reverse_iterator.hpp
-        enable_if.hpp
-        is_integral.hpp
-        integral_constant.hpp
-        pair.hpp
-        stack.hpp
-        map.hpp
-        distance.hpp vector_iterator.hpp
-        shitty_allocator.hpp
-        main.cpp
+        srcs/utils/iterators_traits.hpp
+        srcs/utils/reverse_iterator.hpp
+        srcs/utils/enable_if.hpp
+        srcs/utils/is_integral.hpp
+        srcs/utils/integral_constant.hpp
+        srcs/utils/pair.hpp
+        srcs/containers/stack.hpp
+        srcs/containers/map.hpp
+        srcs/utils/distance.hpp srcs/containers/vector_iterator.hpp
+        srcs/utils/shitty_allocator.hpp
+        test/main.cpp
         test/test_vector.hpp
         )

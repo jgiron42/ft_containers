@@ -4,9 +4,9 @@
 
 #ifndef FT_CONTAINERS_STACK_HPP
 #define FT_CONTAINERS_STACK_HPP
-#include <vector>
+#include "vector.hpp"
 namespace ft {
-	template<	class T, class Container = std::vector<T> >
+	template<	class T, class Container = ft::vector<T> >
 	class stack{
 	public:
 		typedef Container 					container_type;
@@ -20,7 +20,10 @@ namespace ft {
 		explicit stack(const Container& cont = Container()) : c(cont) {};
 		stack( const stack& other ) : c(other.c) {};
 		~stack() {};
-		stack& operator=( const stack& other ) {this->c = other.c;};
+		stack& operator=( const stack& other ) {
+			this->c = other.c;
+			return (*this);
+		};
 		reference top() {return (c.back());};
 		const_reference top() const {return (c.back());};
 		bool empty() const {return (c.empty());};

@@ -1,10 +1,11 @@
 #!/bin/sh
 
-trap "pkill fifodiff; rm .stdpipe .ftpipe" INT STOP
+CFLAGS="-Wall -Werror -Wextra -std=c++98 -I../srcs/containers -I../srcs/utils"
+
+
+trap "pkill fifodiff; rm .stdpipe .ftpipe" INT
 
 cd test
-
-CFLAGS="-Wall -Werror -Wextra -std=c++98 -I../srcs/containers -I../srcs/utils"
 
 check_last_change()
 {
@@ -20,7 +21,7 @@ check_last_change()
 if [  ! -x fifodiff ] || [ "$(stat -c %Y fifodiff.cpp)" -ge "$(stat -c %Y fifodiff)" ]
 then
   echo "compiling fifodiff..."
-  clang++ fifodiff.cpp -o fifodiff
+  clang++ $CFLAGS fifodiff.cpp -o fifodiff || exit
 fi
 if [ ! -x ft_containers ] || [ "$(check_last_change)" -ge "$(stat -c %Y ft_containers)" -o "$(stat -c %Y main.cpp)" -ge "$(stat -c %Y ft_containers)" ]
 then

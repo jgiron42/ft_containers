@@ -1,14 +1,14 @@
 #ifndef FT_CONTAINERS_MAP_HPP
 #define FT_CONTAINERS_MAP_HPP
-#include "srcs/utils/pair.hpp"
-#include "srcs/utils/iterator.hpp"
-#include "srcs/utils/reverse_iterator.hpp"
-#include "srcs/utils/enable_if.hpp"
+#include "../utils/pair.hpp"
+#include "../utils/iterator.hpp"
+#include "../utils/reverse_iterator.hpp"
+#include "../utils/enable_if.hpp"
 #include <cstddef>
-#include "srcs/utils/lexicographical_compare.hpp"
-#include "srcs/utils/equal.hpp"
+#include "../utils/lexicographical_compare.hpp"
+#include "../utils/equal.hpp"
 //#include "is_class.hpp"
-#include "srcs/utils/distance.hpp"
+#include "../utils/distance.hpp"
 #include <limits>
 #include <stdexcept>
 #include <iostream>
@@ -601,7 +601,7 @@ namespace ft {
 		const_iterator upper_bound( const Key& key ) const {
 			iterator ret(recursive_lower_bound(this->tree, key, (node *)&this->_past_the_end));
 
-			if (!compare(ret->first, key) && !compare(key, ret->first))
+			if (!this->_comp(ret->first, key) && !this->_comp(key, ret->first))
 				return (++ret);
 			return (ret);
 		}

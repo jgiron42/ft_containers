@@ -148,6 +148,7 @@ namespace nstest_vector {
 
 	template<class C>
 	void test_insert(C &v1, C &v2) {
+		std::cout << "test_insert:" << std::endl;
 		for (int i = 0; i < 5; i++) {
 			typename C::iterator it;
 			if (!v1.empty())
@@ -186,6 +187,8 @@ namespace nstest_vector {
 
 	template<class C>
 	void test_erase(C &v1, C &v2) {
+		std::cout << "test_erase:" << std::endl;
+
 		typename C::iterator ret;
 		for (int i = 0; i < 5; i++) {
 			typename C::iterator it2 = v2.begin() + (v2.empty() ? 0 : (std::rand() % v2.size()));
@@ -209,32 +212,42 @@ namespace nstest_vector {
 
 	template<class C>
 	void test_push_back(C &v1, C &) {
+		std::cout << "test_push_back:" << std::endl;
+
 		v1.push_back(get_value<typename C::value_type>());
 	}
 
 	template<class C>
 	void test_pop_back(C &v1, C &) {
+		std::cout << "test_pop_back:" << std::endl;
+
 		if (!v1.empty())
 			v1.pop_back();
 	}
 
 	template<class C>
 	void test_resize(C &v1, C &) {
+		std::cout << "test_resize:" << std::endl;
 		v1.resize(std::rand() % (v1.empty() ? 10 : (2 * v1.size())), get_value<typename C::value_type>());
 	}
 
 	template<class C>
 	void test_swap(C &v1, C &v2) {
+		std::cout << "test_swap:" << std::endl;
 		v1.swap(v2);
 	}
 
 	template<class C>
 	void test_stdswap(C &v1, C &v2) {
+		std::cout << "test_stdswap:" << std::endl;
+
 		std::swap(v1, v2);
 	}
 
 	template<class C>
 	void test_comparison(C &v1, C &v2) {
+		std::cout << "test_comparison:" << std::endl;
+
 		std::cout << "v1 < v2" << (v1 < v2) << std::endl;
 		std::cout << "v1 > v2" << (v1 > v2) << std::endl;
 		std::cout << "v1 <= v2" << (v1 <= v2) << std::endl;
@@ -266,9 +279,6 @@ void	test_vector(int seed)
 	};
 	C v1;
 	C v2;
-	nstest_vector::print_full_vect(v1);
-	v1.clear();
-	nstest_vector::print_full_vect(v1);
 	for (int i = 0; i < 1000; i++)
 	{
 		int rand = std::rand() % sizeof(array) / sizeof (void (*)(C &, C &));

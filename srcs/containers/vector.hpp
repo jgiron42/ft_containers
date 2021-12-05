@@ -5,13 +5,13 @@
 #ifndef FT_CONTAINERS_VECTOR_HPP
 #define FT_CONTAINERS_VECTOR_HPP
 
-#include "srcs/utils/reverse_iterator.hpp"
-#include "srcs/utils/lexicographical_compare.hpp"
-#include "srcs/utils/equal.hpp"
-#include "srcs/utils/iterator.hpp"
-#include "srcs/utils/distance.hpp"
-#include "srcs/utils/enable_if.hpp"
-#include "srcs/utils/is_integral.hpp"
+#include "../utils/reverse_iterator.hpp"
+#include "../utils/lexicographical_compare.hpp"
+#include "../utils/equal.hpp"
+#include "../utils/iterator.hpp"
+#include "../utils/distance.hpp"
+#include "../utils/enable_if.hpp"
+#include "../utils/is_integral.hpp"
 #include "vector_iterator.hpp"
 #include <iterator>
 #include <iostream>
@@ -23,8 +23,6 @@
 #define SSTR( x ) static_cast< std::ostringstream & >( ( std::ostringstream() << std::dec << x ) ).str()
 
 namespace ft {
-	typedef int ptrdiff_t;
-	typedef unsigned int size_t;
 
 	template<
 			class T,
@@ -34,7 +32,7 @@ namespace ft {
 	public:
 		typedef T value_type;
 		typedef Allocator allocator_type;
-		typedef size_t size_type;
+		typedef std::size_t size_type;
 		typedef typename Allocator::reference reference;
 		typedef typename Allocator::const_reference const_reference;
 		typedef typename allocator_type::pointer				pointer;
@@ -55,14 +53,14 @@ namespace ft {
 		size_type _capacity;
 		size_type _size;
 	public:
-		vector() : A(allocator_type()), _data(A.allocate(1)), _capacity(1), _size(0) {}
+		vector() : A(allocator_type()), _data(A.allocate(0)), _capacity(0), _size(0) {}
 
-		explicit vector(const Allocator &alloc) : A(alloc), _data(A.allocate(1)), _capacity(1), _size(0) {}
+		explicit vector(const Allocator &alloc) : A(alloc), _data(A.allocate(0)), _capacity(0), _size(0) {}
 
 		explicit vector(size_type count, const T &value = T(), const Allocator &alloc = Allocator())
 		: A(alloc), _data(A.allocate(count)), _capacity(count), _size(count) {
 			for (size_type i = 0; i < count; i++)
-				this->A.construct(this->_data + i, value);
+				this->A.construct(this->_data + i, T(value));
 //				ft::allocator_traits<allocator_type>::construct(this->A, this->_data + i, value);
 		}
 
@@ -77,19 +75,19 @@ namespace ft {
 //				ft::allocator_traits<allocator_type>::construct(this->A, this->_data + j++, *i);
 		}
 
-		template< class InputIt >
-		vector( InputIt first, typename ft::enable_if<is_integral<InputIt>::value, InputIt>::type last, const Allocator& alloc = Allocator()) :
-		A(alloc), _data(A.allocate(static_cast<size_type>(first))), _capacity(static_cast<size_type>(first)), _size(static_cast<size_type>(first)) {
-			for (size_type i = 0; i < static_cast<size_type>(first); i++)
-				this->A.construct(this->_data + i, static_cast<value_type>(last));
-//				ft::allocator_traits<allocator_type>::construct(this->A, this->_data + i, static_cast<value_type>(last));
-		}
+//		template< class InputIt >
+//		vector( InputIt first, typename ft::enable_if<is_integral<InputIt>::value, InputIt>::type last, const Allocator& alloc = Allocator()) :
+//		A(alloc), _data(A.allocate(static_cast<size_type>(first))), _capacity(static_cast<size_type>(first)), _size(static_cast<size_type>(first)) {
+//			for (size_type i = 0; i < static_cast<size_type>(first); i++)
+//				this->A.construct(this->_data + i, static_cast<value_type>(last));
+////				ft::allocator_traits<allocator_type>::construct(this->A, this->_data + i, static_cast<value_type>(last));
+//		}
 
 //		vector(const vector &other) : A(ft::allocator_traits<allocator_type>::select_on_container_copy_construction(other.A)), _data(A.allocate(other._capacity)),
 		vector(const vector &other) : A(other.A), _data(A.allocate(other._capacity)),
 									  _capacity(other._capacity), _size(other._size) {
 			for (size_type i = 0; i < other._size; i++)
-				this->A.construct(this->_data + i, T(other._data[i]));
+				this->A.construct(this->_data + i, other._data[i]);
 //				ft::allocator_traits<allocator_type>::construct(this->A, this->_data + i, T(other._data[i]));
 		}
 		~vector() {
@@ -105,7 +103,7 @@ namespace ft {
 			this->_capacity = other._capacity;
 			this->_size = other._size;
 			for (size_type i = 0; i < other._size; i++)
-				this->A.construct(this->_data + i, T(other._data[i]));
+				this->A.construct(this->_data + i, other._data[i]);
 //				ft::allocator_traits<allocator_type>::construct(this->A, this->_data + i, T(other._data[i]));
 			return (*this);
 		}
@@ -119,7 +117,7 @@ namespace ft {
 			}
 			this->_size = count;
 			for (size_type i = 0; i < count; i++)
-				this->A.construct(this->_data + i, T(value));
+				this->A.construct(this->_data + i, value);
 //				ft::allocator_traits<allocator_type>::construct(this->A, this->_data + i, T(value));
 		}
 
@@ -400,7 +398,7 @@ namespace ft {
 				if (count > _capacity)
 					this->reserve(count);
 				for (size_type j = _size; j < count; j++)
-					this->A.construct(this->_data + j, T(value));
+					this->A.construct(this->_data + j, value);
 //					ft::allocator_traits<allocator_type>::construct(this->A, this->_data + j, value);
 				this->_size = count;
 			}

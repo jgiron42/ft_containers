@@ -1,3 +1,6 @@
+#indef FT_CONTAINERS_TIMER_HPP
+#define FT_CONTAINERS_TIMER_HPP
+
 #include <sys/time.h>
 #include <iostream>
 
@@ -53,3 +56,5 @@ public:
 		return(out);
 	}
 };
+
+#endif // FT_CONTAINERS_TIMER_HPP

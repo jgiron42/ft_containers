@@ -65,17 +65,17 @@ int main(int argc, char **argv)
 					if ((d2.size() >= 100 && d1.size() >= 100)) {
 						std::cout << "files differ!!! (pos: " << pos << ")" << std::endl;
 						std::cout << "context:" << std::endl;
-						for (int i = 0; i < BEFORE_SIZE && i < before.size(); i++)
+						for (std::deque<char>::size_type i = 0; i < BEFORE_SIZE && i < before.size(); i++)
 							std::cout << before[i];
 						std::cout << std::endl;
 						std::cout << "===================================================== ";
 						std::cout << "file1:" << std::endl;
-						for (int i = 0; i < 100 && i < d1.size(); i++)
+						for (std::deque<char>::size_type i = 0; i < 100 && i < d1.size(); i++)
 							std::cout << d1[i];
 						std::cout << std::endl;
 						std::cout << "===================================================== ";
 						std::cout << "file2:" << std::endl;
-						for (int i = 0; i < 100 && i < d1.size(); i++)
+						for (std::deque<char>::size_type i = 0; i < 100 && i < d1.size(); i++)
 							std::cout << d2[i];
 						std::cout << std::endl;
 						return (1);
