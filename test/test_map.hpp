@@ -6,6 +6,9 @@
 #include <cstdlib>
 #include <string>
 #include <climits>
+#ifndef NTEST
+# define NTEST 1000
+#endif
 
 namespace nstest_map {
 	template<class it>
@@ -292,7 +295,7 @@ void	test_map(int seed) {
 		};
 		C m1;
 		C m2;
-		for (int i = 0;  i < 1000; i++) {
+		for (int i = 0; NTEST == -1 || i < NTEST; i++) {
 			int rand = std::rand() % sizeof(array) / sizeof(void (*)(C &, C &));
 			if (std::rand() % 2)
 				array[rand](m1, m2);

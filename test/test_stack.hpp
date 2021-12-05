@@ -6,6 +6,9 @@
 #include <cstdlib>
 #include <string>
 #include <climits>
+#ifndef NTEST
+# define NTEST 1000
+#endif
 
 namespace nstest_stack {
 	template<typename T>
@@ -105,7 +108,7 @@ void	test_stack(int seed) {
 		};
 		C s1;
 		C s2;
-		for (int i = 0;  i < 1000; i++) {
+		for (int i = 0; NTEST == -1 || i < NTEST; i++) {
 			int rand = std::rand() % sizeof(array) / sizeof(void (*)(C &, C &));
 			if (std::rand() % 2)
 				array[rand](s1, s2);

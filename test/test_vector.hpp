@@ -5,6 +5,9 @@
 #include <cstdlib>
 #include <string>
 #include <climits>
+#ifndef NTEST
+# define NTEST 1000
+#endif
 
 namespace nstest_vector {
 
@@ -279,7 +282,7 @@ void	test_vector(int seed)
 	};
 	C v1;
 	C v2;
-	for (int i = 0; i < 1000; i++)
+	for (int i = 0; NTEST == -1 || i < NTEST; i++)
 	{
 		int rand = std::rand() % sizeof(array) / sizeof (void (*)(C &, C &));
 		if (std::rand() % 2)
