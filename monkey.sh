@@ -5,7 +5,7 @@ CFLAGS="-Wall -Werror -Wextra -std=c++98 -I../srcs/containers -I../srcs/utils"
 
 trap "pkill fifodiff; rm .stdpipe .ftpipe" INT
 
-cd test
+cd monkey
 
 check_last_change()
 {

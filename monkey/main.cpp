@@ -1,3 +1,4 @@
+#define DEBUG
 #include "../srcs/containers/map.hpp"
 #include "../srcs/containers/vector.hpp"
 #include "../srcs/containers/stack.hpp"
@@ -7,12 +8,15 @@
 #include <vector>
 #include <stack>
 #include <unistd.h>
+#include <sys/time.h>
 #include "test_map.hpp"
 #include "test_vector.hpp"
 #include "test_stack.hpp"
 #ifndef NAMESPACE
 # define NAMESPACE ft
 #endif
+
+
 
 int main(int argc, char **argv)
 {

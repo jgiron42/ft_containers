@@ -22,7 +22,6 @@
 #define _FT_MAP_CLO(n) (n->p->r == n ? _FT_MAP_SIB(n)->r : _FT_MAP_SIB(n)->l)
 #define _FT_MAP_DIS(n) (n->p->r == n ? _FT_MAP_SIB(n)->l : _FT_MAP_SIB(n)->r)
 
-#define DEBUG
 
 #ifdef DEBUG
 	#define RED_OUTPUT "\033[0;41m"
@@ -141,9 +140,7 @@ namespace ft {
 			typedef U*								pointer;
 			typedef std::ptrdiff_t 						difference_type;
 			typedef std::bidirectional_iterator_tag iterator_category;
-		protected:
 			node *pos;
-		public:
 			iteratorT() : pos(NULL) {};
 			iteratorT(node* n) : pos(n){};
 			iteratorT(const node* n) : pos((node *)n){};
@@ -170,7 +167,6 @@ namespace ft {
 				decrement(this->pos, NULL);
 				return (tmp);
 			}
-			friend class ft::map<Key, T, Compare, Allocator>;
 		private:
 			iteratorT &increment(typename remove_const<const node*>::type n, typename remove_const<const node*>::type old) {
 				if (n->l && old == n->p)
@@ -297,18 +293,19 @@ namespace ft {
 		}
 		allocator_type get_allocator() const {return(this->A);};
 
-		T& at( const Key& key ) {
-			iterator ret = recursive_search(this->tree, key);
-			if (ret != this->end())
-				return (ret->second);
-			throw std::out_of_range("map::at");
-		}
-		const T& at( const Key& key ) const {
-			iterator ret = recursive_search(this->tree, key);
-			if (ret != this->end())
-				return (ret->second);
-			throw std::out_of_range("map::at");
-		}
+//		T& at( const Key& key ) {
+//			iterator ret = recursive_search(this->tree, key);
+//			if (ret != this->end())
+//				return (ret->second);
+//			throw std::out_of_range("map::at");
+//		}
+//		const T& at( const Key& key ) const {
+//			iterator ret = recursive_search(this->tree, key);
+//			if (ret != this->end())
+//				return (ret->second);
+//			throw std::out_of_range("map::at");
+//		}
+
 		T& operator[]( const Key& key ){
 			return (insert(ft::make_pair(key, T())).first->second);
 		}
@@ -428,68 +425,58 @@ namespace ft {
 				delete_node(*pos.pos);
 				return;
 			}
-			zbeub:
-			if (n->p->color == RED)
+			node *s;
+			while (n != this->tree && n->color == BLACK)
 			{
-				if (!_FT_MAP_SIB(n))
-				{
-					n->p->color = BLACK;
-				}
-				else
-				{
-					if (_FT_MAP_CLO(n)) {
-						if (!_FT_MAP_DIS(n)) {
-							_FT_MAP_SIB(n)->color = RED;
-							if (n->p->r == n)
-								rotate_right(_FT_MAP_SIB(n));
-							else
-								rotate_left(_FT_MAP_SIB(n));
-						}
-						else
-						{
-//							n->p->color;
-						}
-					}
-					if (n->p->l == n)
+				if (n == n->p->l) {
+					s = n->p->r;
+					if (s->color == RED) {
+						s->color = BLACK;
 						rotate_right(n->p);
-					else
+						s = n->p->r;
+					}
+					if ((s->l && s->l->color == BLACK) && (s->r && s->r->color == BLACK)) {
+						s->color = RED;
+						n = n->p;
+					} else {
+						if (s->r && s->r->color == BLACK) {
+							s->l->color = BLACK;
+							s->color = RED;
+							rotate_left(s);
+							s = n->p->r;
+						}
+						s->color = n->p->color;
+						n->p->color = BLACK;
+						if (s->r)
+							s->r->color = BLACK;
+						rotate_right(n->p);
+						n = this->tree;
+					}
+				} else {
+					s = n->p->l;
+					if (s->color == RED) {
+						s->color = BLACK;
 						rotate_left(n->p);
-				}
-			}
-			else
-			{
-				if (_FT_MAP_SIB(n)->color == BLACK)
-				{
-					n->p->color = RED;
-					if (_FT_MAP_CLO(n) && !_FT_MAP_DIS(n))
-					{
-						_FT_MAP_SIB(n)->color = RED;
-						_FT_MAP_CLO(n)->color = BLACK;
-						if (n->p->r == n)
-							rotate_right(_FT_MAP_SIB(n));
-						else
-							rotate_left(_FT_MAP_SIB(n));
+						s = n->p->l;
 					}
-					n = n->p->p;
-					goto zbeub;
-				}
-				else {
-					_FT_MAP_SIB(n)->color = BLACK;
-//					invert_color(_FT_MAP_CLO(n));
-//					_FT_MAP_DIS(n)->color = RED;
-//					_FT_MAP_CLO(n)->color = RED;
-					if (!_FT_MAP_DIS(n)) {
-//						_FT_MAP_SIB(n)->color = BLACK;
-						if (n->p->r == n)
-							rotate_right(_FT_MAP_SIB(n));
-						else
-							rotate_left(_FT_MAP_SIB(n));
+					if ((s->l && s->l->color == BLACK) && (s->r && s->r->color == BLACK)) {
+						s->color = RED;
+						n = n->p;
+					} else {
+						if (s->l && s->l->color == BLACK) {
+							s->r->color = BLACK;
+							s->color = RED;
+							rotate_right(s);
+							s = n->p->l;
+						}
+						s->color = n->p->color;
+						n->p->color = BLACK;
+						if (s->l)
+							s->l->color = BLACK;
+						rotate_left(n->p);
+						n = this->tree;
 					}
 				}
-				if (n->p->l == n)
-					rotate_right(n->p);
-				else
-					rotate_left(n->p);
 			}
 			_FT_MAP_PARENT_REF(pos.pos) = NULL;
 			if (pos.pos == first)
@@ -905,7 +892,7 @@ namespace ft {
 		{
 			if (!n)
 				return (0);
-			if (n->p && n->p->color == RED && n->color == RED)
+			if (exist(n->p) && n->p->color == RED && n->color == RED)
 				return (-1);
 			int r1 = is_rb_shaped(n->l);
 			int r2 = is_rb_shaped(n->r);
@@ -976,9 +963,7 @@ namespace ft {
 	bool operator==(i1 l, i2 r){return (&*l == &*r );}
 	template <typename i1, typename i2>
 	bool operator!=(i1 l, i2 r){return !(&*l == &*r );}
-
 }
-
 
 namespace std {
 	template<class Key, class T, class Compare, class Alloc>
@@ -988,7 +973,3 @@ namespace std {
 }
 
 #endif
- 
- 
- 
- 

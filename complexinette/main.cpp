@@ -3,8 +3,10 @@
 #include <iomanip>
 #include <iostream>
 #include <vector>
+#include "../srcs/containers/map.hpp"
+#include "../srcs/utils/pair.hpp"
 #ifndef NTEST
-#define NTEST 1000
+#define NTEST 10000
 #endif
 #ifndef MAX_SIZE
 #define MAX_SIZE 6
@@ -101,22 +103,24 @@ float evaluate_comp(std::map<int, float> &result, float (*f)(int))
 	float min = MAXFLOAT;
 	float max = 0;
 	float average = 0;
-	float ecart = 0;
+	float a = 0;
+	float b = 0;
 	float tmp;
 	for (auto i: result)
 		average += f(i.first) / i.second;
 	average /= result.size();
 	for (auto i: result)
 	{
-		tmp = (f(i.first) / i.second) - average;
-		ecart += tmp * tmp;
+		tmp = (i.second - (f(i.first) + f(result.begin()->first) - result.begin()->second));
+		a += tmp * tmp;
+		b += i.second * i.second;
 //		std::cout << "first: " << i.first << " second: " << i.second << " tmp: " << tmp << std::endl;
 //		if ( tmp > max )
 //			max = tmp;
 //		if ( tmp < min )
 //			min = tmp;
 	}
-	return (ecart / result.size());
+	return (sqrt(a / b));
 }
 
 void aprox(std::map<int, float> &result)
@@ -149,42 +153,36 @@ void aprox(std::map<int, float> &result)
 		std::cout <<  evaluate_comp(result, complexities[i]) << std::endl;
 }
 
-typedef std::set<int> C;
-typedef std::pair<C::iterator, bool> (C:: *inserttype)(const C::value_type &);
+#ifndef NAMESPACE
+# define NAMESPACE ft
+#endif
+
+typedef NAMESPACE::map<int, int> C;
+typedef NAMESPACE::pair<C::iterator, bool> (C:: *inserttype)(const C::value_type &);
 int main(int, char **)
 {
 	std::vector<C>		m;
-	std::vector<int>	v;
+	std::vector<NAMESPACE::pair<int, int> >	v;
 	std::map<float, int> renderm;
 	std::map<int, float> result;
-	for (int i = 1, j = 0, k = 100; i <= 1000 ; i++)
+	for (int i = 0, j = 0, k = 1; i < powl(10, MAX_SIZE); i++)
 	{
-		v.insert(v.end(), i);
+		v.insert(v.end(),NAMESPACE::pair<int, int>(i, i));
 		if (i == k)
 		{
 			m.push_back(C(v.begin(), v.end()));
 			j++;
-			k += 100;
+			k *= 10;
 		}
 	}
-//	for (int i = 0, j = 0, k = 1; i < powl(10, MAX_SIZE); i++)
-//	{
-//		v.insert(v.end(), i);
-//		if (i == k)
-//		{
-//			m[j] = C(v.begin(), v.end());
-//			j++;
-//			k *= 10;
-//		}
-//	}
 	float ret;
-	for (int i = 0, j = 100; i < m.size(); i++, j += 100)
+	for (int i = 0, j = 1; i < m.size(); i++, j *= 10)
 	{
-		ret = time_function<C, inserttype , const C::value_type & >(m[i], &C::insert, j + 1);
+		ret = time_function<C, inserttype , const C::value_type & >(m[i], &C::insert, C::value_type(j + 1, j + 1));
 		std::cout << j << "," << ret << std::endl;
 		renderm[ret] = j;
 		result[j] = ret;
 	}
 //	aprox(result);
-render(renderm);
+//render(renderm);
 }
