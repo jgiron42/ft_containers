@@ -1,9 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
-CFLAGS="-Wall -Werror -Wextra -std=c++98 -fsanitize=address -I../srcs/containers -I../srcs/utils"
+INCLUDE_DIRECTORIES="-I../srcs/containers -I../srcs/utils"
 
+CFLAGS="-Wall -Werror -Wextra -std=c++98 $INCLUDE_DIRECTORIES"
 
-trap "pkill fifodiff; rm .stdpipe .ftpipe 2>/dev/null" INT
+trap "pkill fifodiff; pkill infinite_ft_containers; pkill infinite_std_containers; rm .stdpipe .ftpipe 2>/dev/null" INT
 
 cd monkey
 
@@ -63,8 +64,5 @@ EOF
 wait
 rm .stdpipe .ftpipe 2>/dev/null
 pkill fifodiff
-#sleep 10
-#pkill ft_containers
-#pkill std_containers
 
 

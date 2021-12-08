@@ -5,6 +5,7 @@
 #ifndef FT_CONTAINERS_DISTANCE_HPP
 #define FT_CONTAINERS_DISTANCE_HPP
 #include "iterators_traits.hpp"
+#include <iterator>
 #include "iterator.hpp"
 
 namespace ft {

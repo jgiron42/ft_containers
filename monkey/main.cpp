@@ -1,9 +1,9 @@
 #define DEBUG
-#include "../srcs/containers/map.hpp"
-#include "../srcs/containers/vector.hpp"
-#include "../srcs/containers/stack.hpp"
+#include "map.hpp"
+#include "vector.hpp"
+#include "stack.hpp"
 #include <string>
-#include "../srcs/utils/pair.hpp"
+#include "pair.hpp"
 #include <map>
 #include <vector>
 #include <stack>
@@ -35,13 +35,13 @@ int main(int argc, char **argv)
 			test_stack<NAMESPACE::stack<std::string> >(seed);
 		else
 		{
-			std::cerr << "Invalid arguments" << std::endl;
+			std::cout << "Invalid arguments" << std::endl;
 			ret = 1;
 		}
 	}
 	else
 	{
-		std::cerr << "Invalid arguments" << std::endl;
+		std::cout << "Invalid arguments" << std::endl;
 		ret = 1;
 	}
 	if (!isatty(1))

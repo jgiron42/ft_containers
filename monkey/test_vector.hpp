@@ -19,9 +19,9 @@ namespace nstest_vector {
 
 	template<>
 	std::string get_value<std::string>() {
-		std::string default_val[] = {"zbeub", "", "zbib", "coucou",
-									 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"};
-		return (std::string(default_val[std::rand() % 5]));
+		std::string default_val[] = { "", "amigo de la tornada", "amigo de pepito",
+									 "hola amigo",  "un", "dos", "atencion", "un dos tres quatro", "la pantera"};
+		return (std::string(default_val[std::rand() % 8]));
 	}
 
 	template<>

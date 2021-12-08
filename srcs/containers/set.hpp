@@ -33,27 +33,16 @@
 
 namespace ft {
 
-	template < class Key,                                     // map::key_type
-			class T,                                       // map::mapped_type
-			class Compare = std::less<Key>,                     // map::key_compare
-			class Allocator = std::allocator<pair<const Key,T> >    // map::allocator_type
-	> class map {
+	template < class Key,                                     // set::key_type
+			class Compare = std::less<Key>,                     // set::key_compare
+			class Allocator = std::allocator<Key>     // set::allocator_type
+	> class set {
 	public:
 		typedef Key													key_type;
-		typedef T													mapped_type;
-		typedef pair<const key_type, mapped_type>					value_type;
-		typedef Compare												key_compare;
+		typedef Key													value_type;
 		typedef size_t												size_type;
-		class value_compare : public std::binary_function<value_type, value_type, bool>{
-		protected:
-			Compare comp;
-		public:
-			value_compare(Compare c) : comp(c) {}
-			bool operator()( const value_type& lhs, const value_type& rhs ) const {
-				return(comp(lhs.first, rhs.first));
-			}
-		};
-
+		typedef Compare												key_compare;
+		typedef Compare												value_compare;
 		typedef Allocator											allocator_type;
 		typedef typename Allocator::reference						reference;
 		typedef typename Allocator::const_reference					const_reference;
@@ -167,6 +156,11 @@ namespace ft {
 				decrement(this->pos, NULL);
 				return (tmp);
 			}
+			template <typename V>
+			operator iteratorT<V>() const
+			{
+				return (iteratorT<V>(this->pos));
+			}
 		private:
 			iteratorT &increment(typename remove_const<const node*>::type n, typename remove_const<const node*>::type old) {
 				if (n->l && old == n->p)
@@ -223,17 +217,17 @@ namespace ft {
 		node					*first;
 		node					*last;
 	public:
-		explicit map (const key_compare& comp = key_compare(),
+		explicit set (const key_compare& comp = key_compare(),
 					  const allocator_type& alloc = allocator_type()) : A(alloc), tree(0), _past_the_end(value_type(),0, 0, this->_size, NA) , _comp(comp), _size(0), NA(this->A), first(NULL), last(NULL) {};
 		template <class InputIterator>
-		map (InputIterator first, InputIterator last,
+		set (InputIterator first, InputIterator last,
 			 const key_compare& comp = key_compare(),
 			 const allocator_type& alloc = allocator_type()) : A(allocator_type(alloc)), tree(0), _past_the_end(value_type(),0, 0, this->_size, NA), _comp(comp), _size(0), NA(this->A), first(NULL), last(NULL)
 		{
 				 this->insert(first, last);
 		};
-//		map (const map& x) : A(std::allocator_traits<allocator_type>::select_on_container_copy_construction(x.A)), _past_the_end(value_type(), 0, 0, this->_size, NA), _comp(x._comp), _size(0), NA(std::allocator_traits<node_alloc>::select_on_container_copy_construction(x.NA)), first(NULL), last(NULL)
-		map (const map& x) : A(x.A), _past_the_end(value_type(), 0, 0, this->_size, NA), _comp(x._comp), _size(0), NA(x.NA), first(NULL), last(NULL)
+//		set (const set& x) : A(std::allocator_traits<allocator_type>::select_on_container_copy_construction(x.A)), _past_the_end(value_type(), 0, 0, this->_size, NA), _comp(x._comp), _size(0), NA(std::allocator_traits<node_alloc>::select_on_container_copy_construction(x.NA)), first(NULL), last(NULL)
+		set (const set& x) : A(x.A), _past_the_end(value_type(), 0, 0, this->_size, NA), _comp(x._comp), _size(0), NA(x.NA), first(NULL), last(NULL)
 		{
 			if (x.tree) {
 				node tmp_node(value_type(x.tree->value), x.tree->color, &_past_the_end, this->_size, this->NA);
@@ -258,8 +252,8 @@ namespace ft {
 			_past_the_end.l = this->tree;
 			_past_the_end.r = this->tree;
 		};
-		~map(){this->clear();}
-		map& operator= (const map& x) {
+		~set(){this->clear();}
+		set& operator= (const set& x) {
 			this->clear();
 //			this->_comp = x._comp;
 //			if (std::allocator_traits<node_alloc>::propagate_on_container_copy_assignment::value)
@@ -297,18 +291,14 @@ namespace ft {
 //			iterator ret = search(this->tree, key);
 //			if (ret != this->end())
 //				return (ret->second);
-//			throw std::out_of_range("map::at");
+//			throw std::out_of_range("set::at");
 //		}
 //		const T& at( const Key& key ) const {
 //			iterator ret = search(this->tree, key);
 //			if (ret != this->end())
 //				return (ret->second);
-//			throw std::out_of_range("map::at");
+//			throw std::out_of_range("set::at");
 //		}
-
-		T& operator[]( const Key& key ){
-			return (insert(ft::make_pair(key, T())).first->second);
-		}
 
 		iterator begin() {return (iterator(this->first ? this->first : &_past_the_end));}
 		const_iterator begin() const {return (const_iterator(this->first ? this->first : &_past_the_end));}
@@ -365,7 +355,7 @@ namespace ft {
 			}
 			iterator next = hint;
 			++next;
-			if (next != this->end() && _comp(hint->first, value.first) && _comp(value.first, next->first))
+			if (next != this->end() && _comp(*hint, value) && _comp(value, *next))
 				return (recursive_insert(value, next.pos).first);
 			return (recursive_insert(value, this->tree).first);
 		}
@@ -499,7 +489,7 @@ namespace ft {
 			}
 		}
 
-		size_type erase( const key_type& key )
+		size_type erase( const Key& key )
 		{
 			iterator tmp = find(key);
 			if (tmp == end())
@@ -508,7 +498,7 @@ namespace ft {
 			return (1);
 		}
 
-		void swap( map& other ) {
+		void swap( set& other ) {
 
 //			if (std::allocator_traits<allocator_type>::propagate_on_container_swap::value)
 //				std::swap(this->NA, other.NA);
@@ -595,7 +585,7 @@ namespace ft {
 		iterator upper_bound( const Key& key ) {
 			iterator ret(recursive_lower_bound(this->tree, key, (node *)&this->_past_the_end));
 
-			if (!this->_comp(ret->first, key) && !this->_comp(key, ret->first))
+			if (!this->_comp(*ret, key) && !this->_comp(key, *ret))
 				return (++ret);
 			return (ret);
 		}
@@ -603,7 +593,7 @@ namespace ft {
 		const_iterator upper_bound( const Key& key ) const {
 			iterator ret(recursive_lower_bound(this->tree, key, (node *)&this->_past_the_end));
 
-			if (!this->_comp(ret->first, key) && !this->_comp(key, ret->first))
+			if (!this->_comp(*ret, key) && !this->_comp(key, *ret))
 				return (++ret);
 			return (ret);
 		}
@@ -716,11 +706,11 @@ namespace ft {
 		{
 			if (!n)
 				return(iterator(current));
-			if ((current == &_past_the_end || _comp(n->value.first, current->value.first)) && !_comp(n->value.first, k))
+			if ((current == &_past_the_end || _comp(n->value, current->value)) && !_comp(n->value, k))
 				current = n;
-			if (_comp(k, n->value.first))
+			if (_comp(k, n->value))
 				return(recursive_lower_bound(n->l, k, current));
-			if (_comp(n->value.first, k))
+			if (_comp(n->value, k))
 				return(recursive_lower_bound(n->r, k, current));
 			return (iterator(n));
 		}
@@ -729,11 +719,11 @@ namespace ft {
 		{
 			if (!n)
 				return(iterator(current));
-			if ((current == &_past_the_end || _comp(n->value.first, current->value.first)) && _comp(k, n->value.first))
+			if ((current == &_past_the_end || _comp(n->value, current->value)) && _comp(k, n->value))
 				current = n;
-			if (_comp(k, n->value.first))
+			if (_comp(k, n->value))
 				return(recursive_upper_bound(n->l, k, current));
-			if (_comp(n->value.first, k))
+			if (_comp(n->value, k))
 				return(recursive_upper_bound(n->r, k, current));
 			return (iterator(current));
 		}
@@ -743,9 +733,9 @@ namespace ft {
 			while (1) {
 				if (!n)
 					return(iterator(&this->_past_the_end));
-				else if (_comp(k, n->value.first))
+				else if (_comp(k, n->value))
 					n = n->l;
-				else if (_comp(n->value.first, k))
+				else if (_comp(n->value, k))
 					n = n->r;
 				else
 					return (iterator(n));
@@ -804,7 +794,7 @@ namespace ft {
 			node *ret;
 			node *uncle;
 			node tmpnode(value_type(),0,0, this->_size, this->NA);
-			if (_comp(n->value.first, value.first))						// greater
+			if (_comp(n->value, value))						// greater
 			{
 				if (n->r)
 					return(recursive_insert(value, n->r));
@@ -816,7 +806,7 @@ namespace ft {
 						last = n->r;
 				}
 			}
-			else if (_comp(value.first, n->value.first))					// smaller
+			else if (_comp(value, n->value))					// smaller
 			{
 				if (n->l)
 					return(recursive_insert(value, n->l));
@@ -892,22 +882,22 @@ namespace ft {
 				return n->p->p->l;
 		}
 	public:
-		friend bool operator==(const map &lhs, const map &rhs) {
+		friend bool operator==(const set &lhs, const set &rhs) {
 			return (ft::equal<const_iterator, const_iterator>(lhs.begin(), lhs.end(), rhs.begin(),	rhs.end()));
 		}
-		friend bool operator!=(const map &lhs, const map &rhs) {
+		friend bool operator!=(const set &lhs, const set &rhs) {
 			return (!(lhs == rhs));
 		}
-		friend bool operator<(const map &lhs, const map &rhs) {
+		friend bool operator<(const set &lhs, const set &rhs) {
 			return (ft::lexicographical_compare<const_iterator, const_iterator>(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
 		}
-		friend bool operator<=(const map &lhs, const map &rhs) {
+		friend bool operator<=(const set &lhs, const set &rhs) {
 			return (!(rhs < lhs));
 		}
-		friend bool operator>(const map &lhs, const map &rhs) {
+		friend bool operator>(const set &lhs, const set &rhs) {
 			return (rhs < lhs);
 		}
-		friend bool operator>=(const map &lhs, const map &rhs) {
+		friend bool operator>=(const set &lhs, const set &rhs) {
 			return (!(lhs < rhs));
 		}
 
@@ -971,12 +961,12 @@ namespace ft {
 				std::cout << RED_OUTPUT;
 			if (n->color == BLACK)
 				std::cout << BLACK_OUTPUT;
-			std::cout << n->value.first << DEFAULT_OUTPUT;
-			if (n->value.first < 10 && (n->l || n->r))
+			std::cout << n->value << DEFAULT_OUTPUT;
+			if (n->value < 10 && (n->l || n->r))
 				std::cout << "═";
-			if (n->value.first < 100 && (n->l || n->r))
+			if (n->value < 100 && (n->l || n->r))
 				std::cout << "═";
-			if (n->value.first < 1000 && (n->l || n->r))
+			if (n->value < 1000 && (n->l || n->r))
 				std::cout << "═";
 			if (n->r && n->l)
 			{
@@ -1007,8 +997,8 @@ namespace ft {
 }
 
 namespace std {
-	template<class Key, class T, class Compare, class Alloc>
-	void swap(ft::map<Key, T, Compare, Alloc> &lhs, ft::map<Key, T, Compare, Alloc> &rhs) {
+	template<class Key, class Compare, class Alloc>
+	void swap(ft::set<Key, Compare, Alloc> &lhs, ft::set<Key, Compare, Alloc> &rhs) {
 		lhs.swap(rhs);
 	}
 }

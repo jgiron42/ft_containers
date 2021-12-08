@@ -1,7 +1,4 @@
-
-#include "vector.hpp"
 #include "pair.hpp"
-#include <vector>
 #include <set>
 #include <cstdlib>
 #include <string>
@@ -27,10 +24,10 @@ namespace nstest_map {
 
 	template<>
 	std::string get_value<std::string>() {
-		std::string default_val[] = {"zbeub", "", "zbib", "coucou",
-									 "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "123", "a", "b", "c", "d", "e", "f"};
-		if (!(std::rand() % 4))
-			return (std::string(default_val[std::rand() % 5]));
+		std::string default_val[] = { "", "amigo de la tornada", "amigo de pepito",
+									 "hola amigo",  "un", "dos", "atencion", "un dos tres quatro", "la pantera"};
+		if (!(std::rand() % 3))
+			return (std::string(default_val[std::rand() % 8]));
 		std::string ret = "";
 		for (int i = 0; i < 5; ++i)
 			ret += (std::rand() % 26) + 'a';
