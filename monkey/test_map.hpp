@@ -288,7 +288,7 @@ void	test_map(int seed) {
 				&nstest_map::test_equal_range<C, P>,
 				&nstest_map::test_upper_bound<C, P>,
 				&nstest_map::test_lower_bound<C, P>,
-				//&nstest_map::test_erase<C, P>,
+				&nstest_map::test_erase<C, P>,
 				&nstest_map::test_swap<C, P>,
 				&nstest_map::test_stdswap<C, P>,
 				&nstest_map::test_comparison<C, P>

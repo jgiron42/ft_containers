@@ -20,7 +20,7 @@
 
 int main(int argc, char **argv)
 {
-	int seed = 0;
+	int seed = 42;
 	int	ret = 0;
 
 	if (argc >= 2)

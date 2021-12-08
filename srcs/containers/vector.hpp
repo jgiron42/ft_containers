@@ -501,12 +501,11 @@ namespace ft {
 	private:
 		size_type get_size(size_type wanted)
 		{
-			size_type ret = _capacity;
-			if (!ret)
-				ret = 1;
-			while (ret < wanted + _size)
-				ret *= 2;
-			return (ret);
+			wanted += this->_size;
+			if (wanted > 2 * _capacity)
+				return (wanted);
+			else
+				return (2 *_capacity);
 		}
 		void range_check(size_type n) const {
 			if (n < 0)

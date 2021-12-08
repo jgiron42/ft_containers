@@ -3,14 +3,14 @@
 CFLAGS="-Wall -Werror -Wextra -std=c++98 -I../srcs/containers -I../srcs/utils"
 
 
-trap "pkill fifodiff; rm .stdpipe .ftpipe" INT
+trap "pkill fifodiff" INT
 
-cd monkey
+cd monkey || exit
 
 check_last_change()
 {
   ret=0
-  for file in *.hpp
+  for file in $(find ../srcs . | grep .hpp)
   do
     tmp="$(stat -c "%Y" $file )"
     : $(( ret = tmp > ret ? tmp : ret ))
@@ -18,11 +18,6 @@ check_last_change()
   echo $ret
 }
 
-if [  ! -x fifodiff ] || [ "$(stat -c %Y fifodiff.cpp)" -ge "$(stat -c %Y fifodiff)" ]
-then
-  echo "compiling fifodiff..."
-  clang++ $CFLAGS fifodiff.cpp -o fifodiff || exit
-fi
 if [ ! -x ft_containers ] || [ "$(check_last_change)" -ge "$(stat -c %Y ft_containers)" -o "$(stat -c %Y main.cpp)" -ge "$(stat -c %Y ft_containers)" ]
 then
   echo "compiling ft... "
@@ -34,37 +29,11 @@ then
   clang++ $CFLAGS -D NAMESPACE=std main.cpp -o std_containers || exit
 fi
 
-rm .stdpipe .ftpipe 2>/dev/null
-mkfifo .stdpipe .ftpipe
+./std_containers $@ > .stdtmp
+ ./ft_containers $@ > .fttmp
 
-./fifodiff .stdpipe .ftpipe &
-./std_containers $@ >> .stdpipe | ./ft_containers $@ >> .ftpipe &
-cat << EOF""
-...............................:*FV$V*:...........
-..............................*V$$$$****:.........
-.............................:***I$$III***:.......
-..............................***I$$V***V$$V*:....
-.............................***:**F$$$$$$$$$V*...
-...........................:::*:::*F$$$$$$$$$$$V:.
-...........................:**::::*$$$$$$$$$$$$$$:
-.................:***********II****$$$$$$$$$$$$$$I
-...............*FI**V$$$$$$$$$$$$V$$$$$$$$$$$$$$$V
-.............:III***:::**V$$$$$$$$$$$$$$$$$$$$$$$*
-.............:***II*:...*V$$V$$$$$$$$$$$$$$$$$$$$:
-............:**..::*....**:*$$$$$$$$$$$$$$$$$$$$$:
-:I$$:......:*:..........:****$$$$$$$$$$$$$$$$$$$V.
-.FNNM:...................:***I$$$$$$$$$$$$$$$$$$*.
-..*MNM*....................:.:$$$$$$$$$$$$$$$$$V..
-...*MN$::****:........::******$$$$$$$$$$$$$$$$$:..
-....*$**FVVV$*::::.:***********IV$$$$IF$$$$$$$*:..
-...:::::*****::::::..::::************:::*****:....
-MONKEY IS TESTING YOUR PROJECT...
-EOF
-wait
-rm .stdpipe .ftpipe
-pkill fifodiff
-#sleep 10
-#pkill ft_containers
-#pkill std_containers
+echo "diff:"
+diff .stdtmp .fttmp
+rm .stdtmp .fttmp 2>/dev/null
 
 

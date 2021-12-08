@@ -384,23 +384,23 @@ namespace ft {
 
 		void erase( iterator pos )
 		{
-			std::cout << "erase " << pos.pos->value.first << std::endl;
-			node *tmp;
+//			std::cout << "erase " << pos.pos->value.first << std::endl;
+//			node *tmp;
 			node *n = pos.pos;
+			if (this->first == n)
+				this->first = (++iterator(n)).pos;
+			if (this->last == n)
+				this->last = (--iterator(n)).pos;
 			if (pos.pos == this->tree && !n->r && !n->l)
 			{
 				delete_node(*pos.pos);
 				this->tree = NULL;
-				this->first = &_past_the_end;
-				this->last = &_past_the_end;
 				this->_past_the_end.l = NULL;
 				this->_past_the_end.r = NULL;
 				return;
 			}
 			if (n->l && n->r)
-			{
 				swap_node(n, (++iterator(pos)).pos);
-			}
 			if (n->color == RED)
 			{
 				_FT_MAP_PARENT_REF(n) = NULL;
@@ -410,8 +410,7 @@ namespace ft {
 			if (n->l && n->l->color == RED)
 			{
 				n->l->color = BLACK;
-				_FT_MAP_PARENT_REF(n) = n->l;
-				n->l->p = n->p;
+				this->transplant(n, n->l);
 				n->l = NULL;
 				delete_node(*pos.pos);
 				return;
@@ -419,8 +418,7 @@ namespace ft {
 			if (n->r && n->r->color == RED)
 			{
 				n->r->color = BLACK;
-				_FT_MAP_PARENT_REF(n) = n->r;
-				n->r->p = n->p;
+				this->transplant(n, n->r);
 				n->r = NULL;
 				delete_node(*pos.pos);
 				return;
@@ -428,18 +426,20 @@ namespace ft {
 			node *s;
 			while (n != this->tree && n->color == BLACK)
 			{
+//				this->print();
 				if (n == n->p->l) {
 					s = n->p->r;
 					if (s->color == RED) {
 						s->color = BLACK;
+						n->p->color = RED;
 						rotate_right(n->p);
 						s = n->p->r;
 					}
-					if ((s->l && s->l->color == BLACK) && (s->r && s->r->color == BLACK)) {
+					if ((!s->l || s->l->color == BLACK) && (!s->r || s->r->color == BLACK)) {
 						s->color = RED;
 						n = n->p;
 					} else {
-						if (s->r && s->r->color == BLACK) {
+						if (!s->r || s->r->color == BLACK) {
 							s->l->color = BLACK;
 							s->color = RED;
 							rotate_left(s);
@@ -449,21 +449,24 @@ namespace ft {
 						n->p->color = BLACK;
 						if (s->r)
 							s->r->color = BLACK;
-						rotate_right(n->p);
+//						if (s->color == BLACK)
+							rotate_right(n->p);
 						n = this->tree;
 					}
 				} else {
 					s = n->p->l;
 					if (s->color == RED) {
 						s->color = BLACK;
+						n->p->color = RED;
 						rotate_left(n->p);
+//						this->print();
 						s = n->p->l;
 					}
-					if ((s->l && s->l->color == BLACK) && (s->r && s->r->color == BLACK)) {
+					if ((!s->l || s->l->color == BLACK) && (!s->r || s->r->color == BLACK)) {
 						s->color = RED;
 						n = n->p;
 					} else {
-						if (s->l && s->l->color == BLACK) {
+						if (!s->l || s->l->color == BLACK) {
 							s->r->color = BLACK;
 							s->color = RED;
 							rotate_right(s);
@@ -473,26 +476,26 @@ namespace ft {
 						n->p->color = BLACK;
 						if (s->l)
 							s->l->color = BLACK;
-						rotate_left(n->p);
+//						if (s->color == BLACK)
+							rotate_left(n->p);
 						n = this->tree;
 					}
 				}
 			}
+			n->color = BLACK;
 			_FT_MAP_PARENT_REF(pos.pos) = NULL;
-			if (pos.pos == first)
-				first = pos.pos->p;
-			if (pos.pos == last)
-				last = pos.pos->p;
 			delete_node(*pos.pos);
 			return;
 		}
 
 		void erase( iterator first, iterator last )
 		{
+			iterator	tmp;
 			while (first != last)
 			{
-				erase(first);
+				tmp = first;
 				first++;
+				erase(tmp);
 			}
 		}
 
@@ -516,9 +519,9 @@ namespace ft {
 			this->NA = other.NA;
 			other.NA = NAswap;
 
-			node_alloc Aswap = this->A;
+			allocator_type Aswap = this->A;
 			this->A = other.A;
-			other.A = NAswap;
+			other.A = Aswap;
 
 			size_type	swap_size = this->_size;
 			this->_size = other._size;
@@ -526,7 +529,7 @@ namespace ft {
 
 			node		*tree_swap = this->tree;
 			this->tree = other.tree;
-			set_node(this->tree, (size_type *)&this->_size, (node_alloc *)&other.NA);
+			set_node(this->tree, (size_type *)&this->_size, (node_alloc *)&this->tree->NA);
 			other.tree = tree_swap;
 			set_node(other.tree, (size_type *)&other._size, (node_alloc *)&other.NA);
 
@@ -541,12 +544,24 @@ namespace ft {
 				this->tree->p = &this->_past_the_end;
 
 			node		*first_swap = this->first;
-			this->first = other.first;
-			other.first = first_swap;
+			if (other.first != &other._past_the_end)
+				this->first = other.first;
+			else
+				this->first = &this->_past_the_end;
+			if (first_swap != &this->_past_the_end)
+				other.first = first_swap;
+			else
+				other.first = &other._past_the_end;
 
 			node		*last_swap = this->last;
-			this->last = other.last;
-			other.last = last_swap;
+			if (other.last != &other._past_the_end)
+				this->last = other.last;
+			else
+				this->last = &this->_past_the_end;
+			if (last_swap != &this->_past_the_end)
+				other.last = last_swap;
+			else
+				other.last = &other._past_the_end;
 		};
 
 		size_type count( const Key& key ) const {
@@ -601,6 +616,17 @@ namespace ft {
 		};
 
 	private:
+		void transplant(node *a, node *b)
+		{
+			if (a == a->p->r)
+				a->p->r = b;
+			if (a == a->p->l)
+				a->p->l = b;
+			if (b)
+				b->p = a->p;
+			if (a == this->tree)
+				this->tree = b;
+		}
 		void 	swap_node(node *a, node *b)
 		{
 			node *swap_node;
@@ -623,11 +649,11 @@ namespace ft {
 
 			if (a->p->r == a)
 				a->p->r = b;
-			else
+			if (a->p->l == a)
 				a->p->l = b;
 			if (b->p->r == b)
 				b->p->r = a;
-			else
+			if (b->p->l == b)
 				b->p->l = a;
 			swap_node = a->p;
 			a->p = b->p;
@@ -639,6 +665,16 @@ namespace ft {
 				this->tree = b;
 			else if (this->tree == b)
 				this->tree = a;
+//			if (this->first == a)
+//				this->first = b;
+//			else if (this->first == b)
+//				this->first = a;
+//
+//			if (this->last == a)
+//				this->last = b;
+//			else if (this->last == b)
+//				this->last = a;
+
 		}
 		void 	invert_color(node *a)
 		{
