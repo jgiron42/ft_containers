@@ -6,6 +6,7 @@
 #define FT_CONTAINERS_VECTOR_ITERATOR_HPP
 
 #include <cstddef>
+#include <iterator>
 
 namespace ft
 {
@@ -31,7 +32,7 @@ namespace ft
 			this->p = src.operator->();
 			return (*this);
 		}
-		U &operator*() { return (*p); }
+		U &operator*() const { return (*p); }
 		U *operator->() const { return (p); }
 		t_iterator &operator++() {
 			++p;

@@ -4,6 +4,7 @@
 
 #ifndef FT_CONTAINERS_VECTOR_HPP
 #define FT_CONTAINERS_VECTOR_HPP
+#include <signal.h>
 
 #include "../utils/reverse_iterator.hpp"
 #include "../utils/lexicographical_compare.hpp"
@@ -20,7 +21,9 @@
 #include <algorithm>
 #include <stdexcept>
 #include <sstream>
-#define SSTR( x ) static_cast< std::ostringstream & >( ( std::ostringstream() << std::dec << x ) ).str()
+#ifndef SSTR
+# define SSTR( x ) static_cast< std::ostringstream & >( ( std::ostringstream() << std::dec << (x) ) ).str()
+#endif
 
 namespace ft {
 
@@ -53,9 +56,9 @@ namespace ft {
 		size_type _capacity;
 		size_type _size;
 	public:
-		vector() : A(allocator_type()), _data(A.allocate(0)), _capacity(0), _size(0) {}
+		vector() : A(allocator_type()), _data(NULL), _capacity(0), _size(0) {}
 
-		explicit vector(const Allocator &alloc) : A(alloc), _data(A.allocate(0)), _capacity(0), _size(0) {}
+		explicit vector(const Allocator &alloc) : A(alloc), _data(NULL), _capacity(0), _size(0) {}
 
 		explicit vector(size_type count, const T &value = T(), const Allocator &alloc = Allocator())
 		: A(alloc), _data(A.allocate(count)), _capacity(count), _size(count) {
@@ -65,14 +68,13 @@ namespace ft {
 		}
 
 		template< class InputIt >
-		vector( InputIt first, typename ft::enable_if<!is_integral<InputIt>::value, InputIt>::type last, const Allocator& alloc = Allocator()) : A(alloc) {
-			this->_size = ft::distance(first, last);
-			this->_data = A.allocate(this->_size);
-			this->_capacity = this->_size;
-			int j = 0;
-			for (InputIt i(first); i != last; i++)
-				this->A.construct(this->_data + j++, *i);
-//				ft::allocator_traits<allocator_type>::construct(this->A, this->_data + j++, *i);
+		vector( InputIt first, typename ft::enable_if<!is_integral<InputIt>::value, InputIt>::type last, const Allocator& alloc = Allocator()) : A(alloc), _data(NULL), _capacity(0) , _size(0) {
+			while (first != last)
+			{
+				this->insert(this->end(), *first);
+				++first;
+			}
+			//				ft::allocator_traits<allocator_type>::construct(this->A, this->_data + j++, *i);
 		}
 
 //		template< class InputIt >
@@ -285,7 +287,7 @@ namespace ft {
 			return (pos);
 		}
 
-		void insert( iterator pos, size_type count, const T& value ) {
+		void insert( iterator pos, size_type count, const T& value, ft::true_type) {
 			if (!count)
 				return;
 			size_type tmp = pos - this->begin();
@@ -331,59 +333,25 @@ namespace ft {
 			this->_size += count;
 		}
 
+		void insert( iterator pos, size_type count, const T& value) {
+			this->insert(pos, count, value, ft::true_type());
+		}
 
 		template<class InputIt>
-		void insert( iterator pos, typename ft::enable_if<!is_integral<InputIt>::value, InputIt>::type first, InputIt last) {
-			size_type count = ft::distance(first, last);
-			if (!count)
-				return;
-			size_type tmp = pos - this->begin();
-			size_type i = 0;
-
-			if (this->_size + count > this->_capacity)
+		void insert( iterator pos, InputIt first, InputIt last, ft::false_type) {
+			while (first != last)
 			{
-				size_type new_cap = get_size(count);
-				pointer new_data = this->A.allocate(new_cap);
-				for (; i < tmp; i++)
-					this->A.construct(new_data + i, this->_data[i]);
-				for (size_type j = 0; j < count; j++) {
-					this->A.construct(new_data + i, *first++);
-					++i;
-				}
-				for (; i < this->_size + count; i++)
-					this->A.construct(new_data + i, this->_data[i - count]);
-				size_type new_size = _size + count;
-				this->clear();
-				this->A.deallocate(this->_data, this->_capacity);
-				this->_data = new_data;
-				this->_size = new_size;
-				this->_capacity = new_cap;
-				return;
+				pos = this->insert(pos, *first);
+				++first;
 			}
-			i = this->_size + count;
-			while (i > tmp + count)
-			{
-				if (i > _size)
-					this->A.construct(this->_data + i - 1, this->_data[i - count - 1]);
-				else
-					this->_data[i - 1] = this->_data[i - count - 1];
-				--i;
-			}
-			while (i > tmp)
-			{
-				if (i > _size)
-					this->A.construct(this->_data + i - 1, *--last);
-				else
-					this->_data[i - 1] = *--last;
-				--i;
-			}
-			this->_size += count;
 		}
 
 
 		template<class InputIt>
-		void insert( iterator pos, typename ft::enable_if<is_integral<InputIt>::value, InputIt>::type first, InputIt last) {
-			this->insert(pos, static_cast<size_type>(first), static_cast<value_type>(last));
+		void insert( iterator pos, InputIt first, InputIt last) {
+			typedef typename ft::is_integral<InputIt>::type _Integral;
+
+			this->insert(pos, first, last, _Integral());
 		}
 
 		void resize( size_type count, T value = T() ) {
@@ -461,8 +429,8 @@ namespace ft {
 			this->A.destroy(this->_data + this->_size);
 //			ft::allocator_traits<allocator_type>::destroy(this->A, this->_data + this->_size);
 		}
-
 		void swap(vector &other) {
+//			raise (SIGSEGV);
 //			if (ft::allocator_traits<allocator_type>::propagate_on_container_swap::value)
 //				std::swap(this->A, other.A);
 			allocator_type swap_alloc = this->A;
@@ -480,7 +448,7 @@ namespace ft {
 		}
 
 		friend bool operator==(const vector &lhs, const vector &rhs) {
-			return (ft::equal<iterator , iterator>(lhs.begin(), lhs.end(), rhs.begin(),	rhs.end()));
+			return ((lhs.size() == rhs.size()) && ft::equal<iterator , iterator>(lhs.begin(), lhs.end(), rhs.begin(),	rhs.end()));
 		}
 		friend bool operator!=(const vector &lhs, const vector &rhs) {
 			return (!(lhs == rhs));
@@ -509,9 +477,9 @@ namespace ft {
 		}
 		void range_check(size_type n) const {
 			if (n < 0)
-				throw std::out_of_range(SSTR("vector::range_check n (which is " << n << ") < 0"));
+				throw std::out_of_range("vector::range_check n (which is " + SSTR(n) + ") < 0");
 			if (n >= this->_size)
-				throw std::out_of_range(SSTR("vector::range_check n (which is " << n << ") >= this.size() (which_is " << this->_size	<< ")"));
+				throw std::out_of_range("vector::range_check n (which is " + SSTR(n) + ") >= this.size() (which_is " + SSTR(this->_size) + ")");
 		}
 	};
 }
