@@ -73,21 +73,23 @@ namespace ft {
 		typedef ft::reverse_iterator<const_iterator>				const_reverse_iterator;
 		typedef typename iterator_traits<iterator>::difference_type difference_type;
 	private:
+		key_compare _comp;
 		RBtree<value_type, value_compare, Allocator> tree;
 	public:
 		explicit map (const key_compare& comp = key_compare(),
-					  const allocator_type& alloc = allocator_type()) :  tree(comp, alloc) {};
+					  const allocator_type& alloc = allocator_type()) : _comp(comp), tree(comp, alloc) {};
 		template <class InputIterator>
 		map (InputIterator first, InputIterator last,
 			 const key_compare& comp = key_compare(),
-			 const allocator_type& alloc = allocator_type()) : tree(comp, alloc)
+			 const allocator_type& alloc = allocator_type()) : _comp(comp), tree(comp, alloc)
 		{
 				 this->insert(first, last);
 		};
 //		map (const map& x) : A(std::allocator_traits<allocator_type>::select_on_container_copy_construction(x.A)), _past_the_end(value_type(), 0, 0, this->size, NA), _comp(x._comp), size(0), NA(std::allocator_traits<node_alloc>::select_on_container_copy_construction(x.NA)), first(NULL), last(NULL)
-		map (const map& x) : tree(x.tree) {};
+		map (const map& x) : _comp(x._comp), tree(x.tree) {};
 		~map(){}
 		map& operator= (const map& x) {
+			this->_comp = x._comp;
 			this->tree = x.tree;
 			return (*this);
 		}
@@ -201,7 +203,7 @@ namespace ft {
 			return (const_iterator(this->tree.upper_bound(ft::make_pair<key_type,  mapped_type>(key, mapped_type()))));
 		}
 		key_compare key_comp() const {
-			return(key_compare(this->tree._comp)); // TODO:revoir
+			return(_comp);
 		}
 
 		value_compare value_comp() const {

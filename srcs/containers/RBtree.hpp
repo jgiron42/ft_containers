@@ -581,14 +581,14 @@ public:
 				return (iterator(n));
 		}
 	}
-	iterator upper_bound( const value_type& key ) {
+	iterator upper_bound( const value_type& key ) const {
 		iterator ret(recursive_lower_bound(this->tree, key, (node *)&this->superroot));
 
 		if (!this->_comp(*ret, key) && !this->_comp(key, *ret) && ret != this->end())
 			return (++ret);
 		return (ret);
 	}
-	iterator lower_bound( const value_type& key ) {
+	iterator lower_bound( const value_type& key ) const {
 		return (recursive_lower_bound(this->tree, key, (node *)&this->superroot));
 	}
 };
