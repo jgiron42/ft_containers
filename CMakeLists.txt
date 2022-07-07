@@ -17,8 +17,4 @@ add_executable(ft_containers
         srcs/containers/stack.hpp
         srcs/containers/map.hpp
         srcs/utils/distance.hpp srcs/containers/vector_iterator.hpp
-        srcs/utils/shitty_allocator.hpp
-#        monkey/main.cpp
-        main.cpp
-        monkey/test_vector.hpp
         )
